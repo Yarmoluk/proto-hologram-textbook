@@ -747,6 +747,39 @@
   <h2>Knowledge Graph</h2>
   <p>Explore the concept relationships in Proto Hologram technology. Drag nodes to rearrange. Scroll to zoom.</p>
   <div id="knowledge-graph"></div>
+
+  <h3>Understanding the Knowledge Graph</h3>
+  <p>The knowledge graph above maps the 24 core concepts in Proto Hologram technology and visualizes how they relate to each other. Each node represents a concept, and each connecting line (edge) represents a dependency or relationship between concepts.</p>
+
+  <h4>How to Read the Graph</h4>
+  <ul>
+    <li><strong>Central Node:</strong> "Proto Hologram" sits at the center as the root concept, connecting to all major topic areas.</li>
+    <li><strong>Drag nodes</strong> to rearrange the layout and explore clusters of related concepts.</li>
+    <li><strong>Scroll to zoom</strong> in or out for a closer or broader view.</li>
+    <li><strong>Hover over nodes</strong> to highlight their direct connections.</li>
+  </ul>
+
+  <h4>Node Color Legend</h4>
+  <div class="card">
+    <ul>
+      <li><span style="color:#00d4ff; font-weight:600;">Cyan</span> &mdash; <strong>Core &amp; Products:</strong> Proto Hologram (root), Proto Luma, Proto M2, Proto Epic. These are the central entity and its hardware product line.</li>
+      <li><span style="color:#7b2fff; font-weight:600;">Purple</span> &mdash; <strong>Technology Pillars:</strong> Display Technology, Spatial Computing, AI Integration, Content Creation. The four foundational technology domains that power the platform.</li>
+      <li><span style="color:#ff2d95; font-weight:600;">Pink</span> &mdash; <strong>Platform &amp; Infrastructure:</strong> ProtoOS, Fleet Management, Cloud CMS. The software layer that manages devices and content at scale.</li>
+      <li><span style="color:#ffc107; font-weight:600;">Gold</span> &mdash; <strong>Content &amp; Interaction:</strong> Live Beaming, Text-to-Hologram, AI Avatars. The methods for creating and delivering holographic experiences.</li>
+      <li><span style="color:#ff7043; font-weight:600;">Orange</span> &mdash; <strong>AI Capabilities:</strong> ProtoGPT, Computer Vision, NLP. The specific AI technologies powering intelligent features.</li>
+      <li><span style="color:#66bb6a; font-weight:600;">Green</span> &mdash; <strong>Application Domains:</strong> Education, Healthcare, Retail, Enterprise, Entertainment. The industry verticals where Proto is deployed.</li>
+      <li><span style="color:#ab47bc; font-weight:600;">Violet</span> &mdash; <strong>Display Foundations:</strong> Black Background, Pepper's Ghost. The historical and technical underpinnings of the display technology.</li>
+    </ul>
+  </div>
+
+  <h4>Key Relationships</h4>
+  <p>The graph reveals several important structural patterns:</p>
+  <ul>
+    <li><strong>AI Avatars</strong> is a cross-cutting concept &mdash; it connects to Content Creation (as a content type), AI Integration (as an AI capability), and multiple application domains (Education, Healthcare, Retail) that rely on avatar interactions.</li>
+    <li><strong>Live Beaming</strong> similarly bridges Content Creation with Education and Healthcare, reflecting its importance in telepresence use cases.</li>
+    <li><strong>Computer Vision</strong> connects both AI Integration and Spatial Computing, showing how perception capabilities serve dual roles in intelligence and spatial awareness.</li>
+    <li>The <strong>Application Domains</strong> (green nodes) connect back to specific capabilities rather than just the root, illustrating that each industry vertical depends on particular features of the platform.</li>
+  </ul>
 </section>
 
 <!-- Bloom's Taxonomy -->
@@ -838,23 +871,23 @@ renderGlossary(glossaryTerms);
 
 // ===================== KNOWLEDGE GRAPH =====================
 const kgNodes = new vis.DataSet([
-  { id: 1, label: "Proto\nHologram", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628", size: 16, bold: true }, size: 35 },
+  { id: 1, label: "Proto\nHologram", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#fff", size: 16, bold: true }, size: 35 },
   { id: 2, label: "Display\nTechnology", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
   { id: 3, label: "Spatial\nComputing", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
   { id: 4, label: "AI\nIntegration", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
   { id: 5, label: "Content\nCreation", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
   { id: 6, label: "ProtoOS", color: { background: "#ff2d95", border: "#cc2477" }, font: { color: "#fff" }, size: 22 },
-  { id: 7, label: "Proto Luma", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 8, label: "Proto M2", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 9, label: "Proto Epic", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 10, label: "Live\nBeaming", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 11, label: "Text-to-\nHologram", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 12, label: "AI Avatars", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 13, label: "Education", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 14, label: "Healthcare", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 15, label: "Retail", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 16, label: "Enterprise", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
-  { id: 17, label: "Entertainment", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 7, label: "Proto Luma", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#fff" }, size: 18 },
+  { id: 8, label: "Proto M2", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#fff" }, size: 18 },
+  { id: 9, label: "Proto Epic", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#fff" }, size: 18 },
+  { id: 10, label: "Live\nBeaming", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#fff" }, size: 18 },
+  { id: 11, label: "Text-to-\nHologram", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#fff" }, size: 18 },
+  { id: 12, label: "AI Avatars", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#fff" }, size: 18 },
+  { id: 13, label: "Education", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 14, label: "Healthcare", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 15, label: "Retail", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 16, label: "Enterprise", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 17, label: "Entertainment", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
   { id: 18, label: "ProtoGPT", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
   { id: 19, label: "Computer\nVision", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
   { id: 20, label: "NLP", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
