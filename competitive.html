@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proto Hologram - Competitive Intelligence Textbook</title>
+
+<!-- Open Graph / Link Preview -->
+<meta property="og:title" content="Proto Hologram - Competitive Intelligence">
+<meta property="og:description" content="Interactive competitive intelligence textbook for Proto Hologram — competitor profiles, sales battlecards, comparison matrix, and objection handlers.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yarmoluk.github.io/proto-hologram-textbook/competitive.html">
+<meta property="og:image" content="https://yarmoluk.github.io/proto-hologram-textbook/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Proto Hologram - Competitive Intelligence">
+<meta name="twitter:description" content="Interactive competitive intelligence textbook with competitor profiles, sales battlecards, and objection handlers.">
+<meta name="twitter:image" content="https://yarmoluk.github.io/proto-hologram-textbook/preview.png">
+
+<meta name="description" content="Proto Hologram competitive intelligence textbook with interactive comparison tools, competitor profiles, and sales enablement resources.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root {
+    --primary: #0a1628;
+    --secondary: #1a2d50;
+    --accent: #00d4ff;
+    --accent2: #7b2fff;
+    --accent3: #ff2d95;
+    --text: #e0e8f0;
+    --text-muted: #8899aa;
+    --bg: #0c1a2e;
+    --card-bg: #121f36;
+    --border: #1e3354;
+    --green: #66bb6a;
+    --red: #ef5350;
+    --gold: #ffc107;
+    --sidebar-w: 280px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--primary);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    padding: 20px 0;
+  }
+
+  #sidebar .logo {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  #sidebar .logo h2 {
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+
+  #sidebar .logo p {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 9px 24px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--accent);
+    background: rgba(0, 212, 255, 0.05);
+    border-left-color: var(--accent);
+  }
+
+  #sidebar nav a.nav-section {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent2);
+    padding-top: 16px;
+    pointer-events: none;
+    font-weight: 600;
+  }
+
+  #menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px; left: 15px;
+    z-index: 200;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    max-width: 960px;
+    padding: 40px 50px 80px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 50px 20px;
+    margin-bottom: 50px;
+    background: linear-gradient(135deg, rgba(255,45,149,0.08), rgba(123,47,255,0.08));
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, var(--accent3), var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    font-weight: 800;
+  }
+
+  .hero p { color: var(--text-muted); font-size: 1.05rem; max-width: 620px; margin: 0 auto; }
+
+  .chapter { margin-bottom: 55px; scroll-margin-top: 30px; }
+  .chapter h2 { font-size: 1.7rem; color: var(--accent); margin-bottom: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
+  .chapter h3 { font-size: 1.2rem; color: var(--accent2); margin: 24px 0 10px; }
+  .chapter h4 { font-size: 1rem; color: var(--accent3); margin: 18px 0 8px; }
+  .chapter p { margin-bottom: 12px; }
+  .chapter ul, .chapter ol { margin: 8px 0 14px 24px; }
+  .chapter li { margin-bottom: 5px; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 18px 0;
+  }
+  .card.highlight { border-left: 4px solid var(--accent); }
+  .card.proto { border-left: 4px solid var(--green); }
+  .card.warning { border-left: 4px solid var(--gold); }
+  .card.opportunity { border-left: 4px solid var(--accent3); }
+  .card h4 { margin-top: 0; margin-bottom: 8px; }
+
+  /* Competitor profile cards */
+  .competitor-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .competitor-card .comp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .competitor-card .comp-header h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.2rem;
+  }
+
+  .comp-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .comp-tag.direct { background: rgba(239,83,80,0.2); color: #ef5350; }
+  .comp-tag.indirect { background: rgba(255,193,7,0.2); color: #ffc107; }
+  .comp-tag.bankrupt { background: rgba(239,83,80,0.35); color: #ef5350; }
+  .comp-tag.emerging { background: rgba(0,212,255,0.2); color: #00d4ff; }
+
+  .comp-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .comp-meta span { white-space: nowrap; }
+
+  /* Objection handler */
+  .objection-box {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(123,47,255,0.06));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+
+  .objection-box .objection-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent3);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .objection-box p {
+    font-style: italic;
+    color: var(--text);
+    margin: 0;
+    font-size: 0.92rem;
+  }
+
+  /* Comparison table */
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.82rem; }
+  th, td { padding: 9px 12px; border: 1px solid var(--border); text-align: left; }
+  th { background: var(--secondary); color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; }
+  td { background: var(--card-bg); }
+  tr:hover td { background: rgba(0,212,255,0.04); }
+  .yes { color: var(--green); font-weight: 600; }
+  .no { color: var(--red); font-weight: 600; }
+  .partial { color: var(--gold); font-weight: 600; }
+  .strong { color: var(--green); font-weight: 700; }
+
+  /* Moat badges */
+  .moat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(0,212,255,0.12);
+    color: var(--accent);
+    margin: 3px 4px 3px 0;
+  }
+
+  /* Knowledge graph */
+  #comp-graph { width: 100%; height: 480px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; margin: 18px 0; }
+
+  /* Market sim */
+  .microsim-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 22px 0;
+    text-align: center;
+  }
+  .microsim-container h4 { color: var(--accent); margin-bottom: 8px; }
+  .microsim-container p.sim-desc { font-size: 0.83rem; color: var(--text-muted); margin-bottom: 12px; }
+  .microsim-container canvas { border-radius: 8px; display: block; margin: 0 auto; }
+
+  /* Glossary */
+  #glossary-search {
+    width: 100%;
+    padding: 11px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 14px;
+    outline: none;
+  }
+  #glossary-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,212,255,0.15); }
+  .glossary-grid { display: grid; gap: 10px; }
+  .glossary-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+  .glossary-item dt { color: var(--accent); font-weight: 600; margin-bottom: 3px; font-size: 0.92rem; }
+  .glossary-item dd { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* Bloom badges */
+  .bloom-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 5px; margin-bottom: 3px; }
+  .bloom-remember { background: rgba(76,175,80,0.2); color: #66bb6a; }
+  .bloom-understand { background: rgba(33,150,243,0.2); color: #42a5f5; }
+  .bloom-apply { background: rgba(255,193,7,0.2); color: #ffc107; }
+  .bloom-analyze { background: rgba(255,87,34,0.2); color: #ff7043; }
+  .bloom-evaluate { background: rgba(156,39,176,0.2); color: #ab47bc; }
+  .bloom-create { background: rgba(255,45,149,0.2); color: #ff2d95; }
+
+  .back-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-size: 0.88rem; }
+  .back-link:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #menu-toggle { display: block; }
+    #main { margin-left: 0; padding: 60px 20px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<aside id="sidebar">
+  <div class="logo">
+    <h2>PROTO HOLOGRAM</h2>
+    <p>Competitive Intelligence</p>
+  </div>
+  <nav>
+    <a class="nav-section">Market</a>
+    <a href="#ch1">1. Market Overview</a>
+    <a href="#ch2">2. Proto's Competitive Moats</a>
+    <a class="nav-section">Competitors</a>
+    <a href="#ch3">3. HYPERVSN</a>
+    <a href="#ch4">4. Looking Glass Factory</a>
+    <a href="#ch5">5. ARHT Media (Bankrupt)</a>
+    <a href="#ch6">6. Holoconnects</a>
+    <a href="#ch7">7. Realfiction / Dreamoc</a>
+    <a href="#ch8">8. Google Beam / HP</a>
+    <a href="#ch9">9. Others</a>
+    <a class="nav-section">Sales Tools</a>
+    <a href="#matrix">Comparison Matrix</a>
+    <a href="#objections">Objection Handlers</a>
+    <a class="nav-section">Interactive</a>
+    <a href="#microsim-section">Market MicroSim</a>
+    <a href="#comp-graph-section">Competitive Map</a>
+    <a class="nav-section">Reference</a>
+    <a href="#blooms">Bloom's Taxonomy</a>
+    <a href="#glossary-section">Glossary</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<a href="index.html" class="back-link">&larr; Back to Main Textbook</a>
+
+<div class="hero">
+  <h1>Competitive Intelligence</h1>
+  <p>Sales battlecards, competitor profiles, comparison tools, and objection handlers for the Proto Hologram sales team.</p>
+</div>
+
+<!-- Chapter 1: Market Overview -->
+<section class="chapter" id="ch1">
+  <h2>Chapter 1: Market Overview</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-remember">Remember</span> Recall the holographic display market size and growth projections.<br>
+    <span class="bloom-badge bloom-understand">Understand</span> Explain the market segments where Proto competes.
+  </div>
+
+  <h3>1.1 Market Size &amp; Growth</h3>
+  <ul>
+    <li><strong>Holographic Display Market:</strong> ~$4.5 billion (2025), projected $10&ndash;15 billion by 2030 (18&ndash;26% CAGR).</li>
+    <li><strong>Holographic Telepresence Sub-Market:</strong> $2.3 billion (2024), projected $20.5 billion by 2033 (28.7% CAGR).</li>
+    <li><strong>Digital Signage:</strong> Captures 55%+ of holographic market revenue.</li>
+    <li><strong>Geography:</strong> North America leads adoption; Asia-Pacific is the fastest-growing region.</li>
+  </ul>
+
+  <h3>1.2 Market Segments</h3>
+  <p>The holographic display market is not monolithic. Competitors operate across distinct segments, and most compete in only one or two:</p>
+  <table>
+    <thead><tr><th>Segment</th><th>Description</th><th>Proto Presence</th><th>Key Competitors</th></tr></thead>
+    <tbody>
+      <tr><td>Holographic Telepresence</td><td>Live, two-way holographic communication</td><td class="strong">STRONG</td><td>Google Beam, Holoconnects</td></tr>
+      <tr><td>AI Holographic Assistants</td><td>Conversational AI avatars in holographic displays</td><td class="strong">STRONG</td><td>Holoconnects</td></tr>
+      <tr><td>Holographic Digital Signage</td><td>Advertising, product displays, eye-catching content</td><td class="yes">Yes</td><td>HYPERVSN, Realfiction</td></tr>
+      <tr><td>3D Visualization</td><td>Glasses-free 3D model viewing</td><td class="partial">Partial</td><td>Looking Glass, Voxon</td></tr>
+      <tr><td>Holographic Entertainment</td><td>Concerts, events, celebrity appearances</td><td class="strong">STRONG</td><td>MDH Hologram</td></tr>
+      <tr><td>Consumer 3D Displays</td><td>Gaming monitors, home devices</td><td class="no">No</td><td>Samsung, Leia</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card proto">
+    <h4>Proto's Unique Position</h4>
+    <p>Proto is the <strong>only company competing across all enterprise segments simultaneously</strong> &mdash; telepresence, AI assistants, digital signage, and entertainment. Every other competitor is confined to one or two segments. This breadth is Proto's strategic advantage.</p>
+  </div>
+</section>
+
+<!-- Chapter 2: Proto's Competitive Moats -->
+<section class="chapter" id="ch2">
+  <h2>Chapter 2: Proto's Five Competitive Moats</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-understand">Understand</span> Articulate Proto's five key competitive advantages.<br>
+    <span class="bloom-badge bloom-apply">Apply</span> Use moat positioning in a sales conversation.<br>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Assess which moat is most relevant for a given prospect.
+  </div>
+
+  <div class="card proto">
+    <h4><span class="moat-badge">MOAT 1</span> Only Platform with Life-Size Presence + Live Communication + AI</h4>
+    <p>No other competitor combines all three capabilities. HYPERVSN has presence without communication. Google Beam has communication without full-body presence. Holoconnects has presence and communication but lacks Proto's AI platform depth (ProtoGPT, RetailSage). Proto is the only complete holographic communications platform.</p>
+  </div>
+
+  <div class="card proto">
+    <h4><span class="moat-badge">MOAT 2</span> Strongest Brand &amp; Client Portfolio</h4>
+    <p>UFC/Dana White, CBS, ESPN, Nike, Walmart Museum, H&amp;M, Christian Dior, Ellen DeGeneres, Usain Bolt, Lewis Hamilton, Jimmy Kimmel, Jack Black, Sony Pictures, Universal Studios, NBC's The Voice, America's Got Talent, Ronald Reagan Presidential Library. <strong>20+ Fortune 500 companies.</strong> No competitor comes close to this roster.</p>
+  </div>
+
+  <div class="card proto">
+    <h4><span class="moat-badge">MOAT 3</span> ARHT Media Bankruptcy Eliminates Top Rival</h4>
+    <p>ARHT Media &mdash; Proto's most direct telepresence competitor &mdash; filed for bankruptcy in October 2024. All operations ceased, all employees laid off. Their former clients (WeWork, Paramount, Imperial College London, PVR Cinemas India) are now without a provider. Proto is the clear replacement and the surviving market leader in holographic telepresence.</p>
+  </div>
+
+  <div class="card proto">
+    <h4><span class="moat-badge">MOAT 4</span> Broadest Vertical Coverage</h4>
+    <p>Proto is deployed across <strong>five major verticals</strong>: healthcare (West Cancer Center, UCF Medical, TIME100 Health), education (50+ universities), retail (Simon Malls, H&amp;M, Walmart), enterprise (20+ Fortune 500), and entertainment (every U.S. pro sports league). Competitors typically serve one or two verticals at most.</p>
+  </div>
+
+  <div class="card proto">
+    <h4><span class="moat-badge">MOAT 5</span> Full-Stack Platform with AI</h4>
+    <p>ProtoOS (Linux/Ubuntu Core 22) + ProtoGPT + RetailSage + fleet management + cloud CMS + developer APIs + app marketplace + SOC-2 Type II + HIPAA alignment. <strong>Competitors sell hardware. Proto sells a platform.</strong></p>
+  </div>
+</section>
+
+<!-- Chapter 3: HYPERVSN -->
+<section class="chapter" id="ch3">
+  <h2>Chapter 3: HYPERVSN</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Compare HYPERVSN's spinning LED technology against Proto's volumetric display.<br>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Determine when HYPERVSN is a true competitive threat vs. a different category.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>HYPERVSN (Kino-mo Ltd.)</h3>
+      <span class="comp-tag indirect">Indirect Competitor</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: London, UK</span>
+      <span>Website: hypervsn.com</span>
+      <span>Category: LED Fan Holographic Displays</span>
+    </div>
+
+    <h4>Products &amp; Pricing</h4>
+    <table>
+      <thead><tr><th>Product</th><th>Display</th><th>Key Spec</th><th>Price</th></tr></thead>
+      <tbody>
+        <tr><td>SmartV Solo M</td><td>56 cm (22")</td><td>1080x1080, 1.11mm pixel pitch</td><td>~$5,000</td></tr>
+        <tr><td>SmartV Solo L</td><td>75 cm (30")</td><td>3,000 nits brightness</td><td>~$5,000+</td></tr>
+        <tr><td>SmartV Wall</td><td>Multi-unit array</td><td>Synchronized large-scale</td><td>$10,000s</td></tr>
+        <tr><td>Holographic Human</td><td>Life-size</td><td>LED fan array</td><td>Contact</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Technology</h4>
+    <p>Spinning LED fan rotor (persistence of vision). Four thin blades with micro-LEDs spin faster than the eye can see. Content appears to float in mid-air. Open-air illusion, not enclosed.</p>
+
+    <h4>Notable Clients</h4>
+    <p>Tissot/Swatch (40 stores), Louis Vuitton (Selfridges), Ariana Grande x Swarovski, Coca-Cola, Samsung, McDonald's, Cinepolis (50 devices), Times Square.</p>
+
+    <h4>Strengths</h4>
+    <ul>
+      <li>Lower price (~$5K per unit)</li>
+      <li>3,000 nits brightness &mdash; works outdoors and in daylight</li>
+      <li>Massive scalability through wall arrays</li>
+      <li>Strong retail brand adoption</li>
+      <li>Eye-catching for advertising signage</li>
+    </ul>
+
+    <h4>Weaknesses to Exploit</h4>
+    <ul>
+      <li><strong>NOT a communication device</strong> &mdash; no two-way live interaction</li>
+      <li>Cannot display a realistic full human body</li>
+      <li>Moving parts: noise, mechanical failure risk, safety enclosure needed</li>
+      <li>Limited to pre-recorded or streamed 2D/3D content</li>
+      <li>No AI integration or conversational capability</li>
+      <li>Open-air display, not contained holographic presence</li>
+    </ul>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "We're also looking at HYPERVSN"</div>
+    <p>"HYPERVSN is excellent for advertising signage &mdash; spinning LED fans that create eye-catching floating images. But there are three things it fundamentally cannot do: (1) beam a live person into the device for two-way communication, (2) serve as an AI-powered conversational assistant, (3) display a photorealistic life-size human. If your need is digital signage only, HYPERVSN may work. If you need holographic communications, telepresence, or AI interaction &mdash; that's what Proto was built for."</p>
+  </div>
+</section>
+
+<!-- Chapter 4: Looking Glass -->
+<section class="chapter" id="ch4">
+  <h2>Chapter 4: Looking Glass Factory</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Distinguish light field display technology from Proto's volumetric approach.<br>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Assess the competitive threat of the HLD 86" at $15K.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>Looking Glass Factory</h3>
+      <span class="comp-tag indirect">Indirect Competitor</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: Brooklyn, NY</span>
+      <span>Website: lookingglassfactory.com</span>
+      <span>Backed by: Accenture Ventures</span>
+    </div>
+
+    <h4>Products &amp; Pricing</h4>
+    <table>
+      <thead><tr><th>Product</th><th>Display</th><th>Key Spec</th><th>Price</th></tr></thead>
+      <tbody>
+        <tr><td>16" Light Field</td><td>16" OLED</td><td>4K, 53&deg; viewing</td><td>~$4,000</td></tr>
+        <tr><td>27" Light Field</td><td>27"</td><td>5K, 100 views</td><td>$8,000&ndash;$10,000</td></tr>
+        <tr><td>HLD 16"</td><td>16"</td><td>4K, touch, camera, mic</td><td>$1,500</td></tr>
+        <tr><td>HLD 27"</td><td>27"</td><td>4K, touch, camera, mic</td><td>$3,000</td></tr>
+        <tr><td>HLD 86"</td><td>86"</td><td>4K, ~2 ft depth</td><td>$15,000</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Technology</h4>
+    <p>Light field display projecting up to 100 simultaneous perspectives. Patented hybrid design with 60-degree viewing angle. Glasses-free. Ultra-thin (2 inches). Unity/Unreal Engine integration.</p>
+
+    <h4>Strengths</h4>
+    <ul>
+      <li>True multi-view 3D (100 simultaneous views)</li>
+      <li>Lower price points ($1,500&ndash;$15,000)</li>
+      <li>Strong developer tools (Unity/Unreal)</li>
+      <li>Ultra-thin form factor</li>
+      <li>Accenture Ventures backing</li>
+    </ul>
+
+    <h4>Weaknesses to Exploit</h4>
+    <ul>
+      <li><strong>Not designed for telepresence or live communication</strong></li>
+      <li>Cannot beam a live person</li>
+      <li>HLD 86" is a flat wall display, not an enclosed holographic presence</li>
+      <li>Only ~2 feet of perceived depth</li>
+      <li><strong>HLD 86" doesn't ship until mid-2026</strong> &mdash; Proto ships today</li>
+      <li>No AI avatar capabilities</li>
+      <li>Limited real-world deployments</li>
+    </ul>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "Looking Glass is cheaper at $15K for 86 inches"</div>
+    <p>"Looking Glass HLD 86" is a flat display mounted on a wall &mdash; it creates a 3D effect with about 2 feet of perceived depth. Proto Luma is an enclosed holographic display where a life-size person appears to stand in the room with you. The experiences are fundamentally different. Looking Glass is great for viewing 3D models. Proto delivers human presence &mdash; live beaming, AI avatars, and the emotional impact of a full-body hologram. Also, the HLD 86" doesn't ship until mid-2026. Proto ships today."</p>
+  </div>
+</section>
+
+<!-- Chapter 5: ARHT Media -->
+<section class="chapter" id="ch5">
+  <h2>Chapter 5: ARHT Media (Bankrupt)</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Understand why ARHT failed and how Proto succeeded where they did not.<br>
+    <span class="bloom-badge bloom-create">Create</span> Develop an outreach strategy for former ARHT clients.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>ARHT Media</h3>
+      <span class="comp-tag bankrupt">Bankrupt &mdash; Oct 2024</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: Toronto, Canada (defunct)</span>
+      <span>Status: Operations ceased, all employees laid off</span>
+    </div>
+
+    <h4>What Happened</h4>
+    <p>Filed for bankruptcy <strong>October 4, 2024</strong> under the Bankruptcy and Insolvency Act. MNP Ltd. appointed as Licensed Insolvency Trustee. Board of directors resigned. Failed to secure financing to fund operations until achieving large-scale rollouts.</p>
+
+    <h4>Former Products</h4>
+    <ul>
+      <li><strong>HoloPresence:</strong> Life-size telepresence (Pepper's Ghost-style) &mdash; $25K&ndash;$100K hardware</li>
+      <li><strong>HoloPod:</strong> Permanent installation version</li>
+      <li><strong>Usage fees:</strong> $2,000&ndash;$5,000/hour of transmission</li>
+      <li><strong>Subscriptions:</strong> $15,000&ndash;$40,000/year</li>
+    </ul>
+
+    <h4>Former Clients (Acquisition Targets)</h4>
+    <ul>
+      <li>President Zelensky (holographic address to tech leaders)</li>
+      <li>WeWork (16 locations)</li>
+      <li>Paramount+ / Star Trek</li>
+      <li>Warner Bros</li>
+      <li>Imperial College London</li>
+      <li>IMD (Lausanne/Singapore)</li>
+      <li>PVR Cinemas India (10 locations)</li>
+      <li>Multinational pharmaceutical companies</li>
+    </ul>
+  </div>
+
+  <div class="card opportunity">
+    <h4>Sales Opportunity</h4>
+    <p>ARHT's former clients are orphaned and need a replacement holographic telepresence provider. Proto should proactively reach out to these organizations. The distribution partnership ARHT had with Exertis ALMO may also be available.</p>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "We had ARHT Media"</div>
+    <p>"ARHT was our most direct competitor, and they filed for bankruptcy in October 2024 because they couldn't achieve the scale to sustain operations. Proto succeeded where ARHT failed for three reasons: (1) Proto builds its own hardware &mdash; we're a full-stack platform, not dependent on third-party projection equipment. (2) Proto invested in AI with ProtoGPT and RetailSage, creating recurring value beyond one-time telepresence events. (3) Proto has diversified across education, healthcare, retail, enterprise, and entertainment &mdash; we're not dependent on any single vertical. We're happy to ensure a smooth transition for your holographic programs."</p>
+  </div>
+</section>
+
+<!-- Chapter 6: Holoconnects -->
+<section class="chapter" id="ch6">
+  <h2>Chapter 6: Holoconnects</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Compare Holoconnects' AI hospitality focus with Proto's broader platform.<br>
+    <span class="bloom-badge bloom-apply">Apply</span> Position Proto against Holoconnects in a sales conversation.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>Holoconnects</h3>
+      <span class="comp-tag direct">Direct Competitor</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: Netherlands</span>
+      <span>Website: holoconnects.com</span>
+      <span>Category: Transparent LCD Holographic Displays</span>
+    </div>
+
+    <h4>Products &amp; Pricing</h4>
+    <table>
+      <thead><tr><th>Product</th><th>Display</th><th>Key Spec</th><th>Price</th></tr></thead>
+      <tbody>
+        <tr><td>Holobox Mini</td><td>20" tall</td><td>Tabletop, portable</td><td>From $3,000</td></tr>
+        <tr><td>Holobox (Full-size)</td><td>86" LCD</td><td>2.06m high, 551 lbs, 2x80W speakers</td><td>Custom</td></tr>
+        <tr><td>Hologrid</td><td>Modular wall</td><td>4K touchscreen</td><td>Custom</td></tr>
+        <tr><td>AI Holobox</td><td>Various</td><td>AI-powered interactive avatar</td><td>Custom</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Notable Clients</h4>
+    <p>Best Western/Aiden (AI hotel check-in, Denmark), CIC Hospitality (30 Scandinavian hotels), Crescent Regional Hospital TX, CANAL+ (Champions League).</p>
+
+    <h4>Strengths</h4>
+    <ul>
+      <li>Lower entry price (Mini at $3,000)</li>
+      <li>Strong AI avatar for hospitality check-in/concierge</li>
+      <li>Plug-and-play simplicity</li>
+      <li>Good traction in European hospitality</li>
+    </ul>
+
+    <h4>Weaknesses to Exploit</h4>
+    <ul>
+      <li>Far less prominent client roster than Proto</li>
+      <li>Full-size Holobox extremely heavy (551 lbs)</li>
+      <li>Transparent LCD produces less vivid holographic effect</li>
+      <li>Netherlands HQ &mdash; limited US market presence</li>
+      <li>No enterprise fleet management, SOC-2, or HIPAA compliance</li>
+      <li>Narrow vertical focus (hospitality)</li>
+    </ul>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "Holoconnects seems similar and cheaper"</div>
+    <p>"Holoconnects makes a good product, especially for European hospitality. But look at the track record: Proto has UFC, CBS, Nike, Walmart, H&amp;M, Christian Dior, ESPN, and 50+ universities. Holoconnects has 30 Scandinavian hotels and a hospital in Texas. Proto also offers ProtoOS with enterprise fleet management, SOC-2 Type II compliance, HIPAA alignment, and AI platforms like ProtoGPT and RetailSage. When you're deploying across multiple locations with enterprise security requirements, Proto is the proven platform."</p>
+  </div>
+</section>
+
+<!-- Chapter 7: Realfiction -->
+<section class="chapter" id="ch7">
+  <h2>Chapter 7: Realfiction / Dreamoc</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-understand">Understand</span> Explain why Dreamoc is a different product category than Proto.<br>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Identify the narrow use case where Dreamoc has an advantage.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>Realfiction (Dreamoc)</h3>
+      <span class="comp-tag indirect">Indirect Competitor</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: Copenhagen, Denmark</span>
+      <span>Website: realfiction.com</span>
+      <span>Category: Pepper's Ghost Product Display Cases</span>
+    </div>
+
+    <h4>Products &amp; Pricing</h4>
+    <table>
+      <thead><tr><th>Product</th><th>Display</th><th>Feature</th><th>Price</th></tr></thead>
+      <tbody>
+        <tr><td>Dreamoc POP3</td><td>Shelf-level</td><td>Single-sided</td><td>$1,799</td></tr>
+        <tr><td>Dreamoc HD3.2</td><td>23"</td><td>3-sided viewing, audio</td><td>$2,499</td></tr>
+        <tr><td>Dreamoc XL4</td><td>43"</td><td>Plug-and-play, USB</td><td>$9,999</td></tr>
+        <tr><td>Dreamoc XL5</td><td>43"</td><td>Touchscreen interactive</td><td>$10,000+</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Notable Clients</h4>
+    <p>Breitling (5th Ave NYC), Lego, Coca-Cola, Ardbeg whisky, Lexus. 1,000+ unit deployment across US retail chain.</p>
+
+    <h4>Unique Capability</h4>
+    <p>Can place <strong>physical products inside the holographic field</strong> &mdash; watches, bottles, or luxury goods float alongside holographic content. This is Dreamoc's one genuine advantage for retail product showcase.</p>
+
+    <h4>Weaknesses to Exploit</h4>
+    <ul>
+      <li>NOT a communication or telepresence device</li>
+      <li>Cannot display live humans</li>
+      <li>No AI integration</li>
+      <li>Basic Pepper's Ghost technology (19th-century principle)</li>
+      <li>Limited to product showcase content</li>
+      <li>Not life-size</li>
+    </ul>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "What about Dreamoc?"</div>
+    <p>"Dreamoc is a holographic product display case &mdash; excellent for showcasing watches or luxury goods on a shelf. But it cannot beam a person, interact with customers, or serve as an AI assistant. It's a display case; Proto is a holographic communications platform. Different products for different needs."</p>
+  </div>
+</section>
+
+<!-- Chapter 8: Google Beam -->
+<section class="chapter" id="ch8">
+  <h2>Chapter 8: Google Beam / HP (Project Starline)</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Assess Google Beam as Proto's most significant long-term competitive threat.<br>
+    <span class="bloom-badge bloom-apply">Apply</span> Position Proto's advantages against the Google/HP brand halo.
+  </div>
+
+  <div class="competitor-card">
+    <div class="comp-header">
+      <h3>Google Beam / HP (Project Starline)</h3>
+      <span class="comp-tag emerging">Emerging Threat</span>
+    </div>
+    <div class="comp-meta">
+      <span>HQ: Mountain View, CA</span>
+      <span>Partners: Google + HP</span>
+      <span>Status: Limited early access, late 2025</span>
+    </div>
+
+    <h4>Technology</h4>
+    <p>3D telepresence "magic window" combining 3D imaging, computer vision, spatial audio, and AI depth mapping. Cameras capture the user; AI generates stereoscopic depth, making the remote person appear to sit across from you. Integrates with Google Meet and Zoom.</p>
+
+    <h4>Key Stat</h4>
+    <p><strong>50% increase in nonverbal communication</strong> (head nods, gestures, expressions) vs. traditional video calls.</p>
+
+    <h4>Strengths</h4>
+    <ul>
+      <li>Google + HP backing (effectively unlimited resources)</li>
+      <li>Google Meet / Zoom integration (massive user bases)</li>
+      <li>Most natural "presence" feeling in research studies</li>
+      <li>Enterprise-grade reliability</li>
+    </ul>
+
+    <h4>Weaknesses to Exploit</h4>
+    <ul>
+      <li><strong>Not yet commercially available at scale</strong> (still early access)</li>
+      <li>Designed ONLY for seated, 1:1 video conferencing</li>
+      <li>Cannot project full-body, life-size holograms</li>
+      <li>Cannot do events, retail, entertainment, or kiosk use cases</li>
+      <li>Single-viewer experience</li>
+      <li>No standalone holographic display capability</li>
+      <li>No AI avatar or conversational AI features</li>
+      <li>Not portable</li>
+    </ul>
+  </div>
+
+  <div class="card warning">
+    <h4>Competitive Threat Assessment: HIGH (Long-Term)</h4>
+    <p>Google Beam is the most significant long-term threat due to Google and HP's resources and integration with Google Meet/Zoom. However, their product serves a fundamentally different use case (seated conferencing) than Proto's full-body holographic presence, events, retail, and AI avatar capabilities. <strong>Watch this competitor closely.</strong></p>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">Sales Talk Track: "What about Google/HP's Project Starline?"</div>
+    <p>"Google Beam is the most interesting long-term development in this space, and we respect what they're building. But there are key differences: (1) Google Beam is designed exclusively for seated, 1:1 video conferencing. Proto delivers full-body, life-size holograms for events, retail, healthcare, and education. (2) Google Beam is still in limited early access. Proto is deployed at 50+ universities, 20+ Fortune 500 companies, and major entertainment venues today. (3) Proto includes AI avatars, fleet management, and a content platform &mdash; Google Beam is a conferencing endpoint. Different products for different needs."</p>
+  </div>
+</section>
+
+<!-- Chapter 9: Others -->
+<section class="chapter" id="ch9">
+  <h2>Chapter 9: Other Competitors</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-remember">Remember</span> Identify secondary competitors and their limitations.<br>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Classify competitors by threat level.
+  </div>
+
+  <h3>9.1 Voxon Photonics</h3>
+  <div class="comp-meta"><span>HQ: Adelaide, Australia</span><span>voxon.co</span><span class="comp-tag indirect" style="padding:2px 8px;">Indirect</span></div>
+  <p>True volumetric display (spinning LED arrays creating actual 3D light points). VX2: 10" cylinder, $6,800. VX2-XL: 20". True 360-degree viewing. <strong>But the display is only 10 inches across &mdash; cannot fit a human.</strong> Niche visualization tool, not a communication platform.</p>
+
+  <h3>9.2 Samsung</h3>
+  <div class="comp-meta"><span>HQ: Seoul, South Korea</span><span>samsung.com</span><span class="comp-tag indirect" style="padding:2px 8px;">Indirect</span></div>
+  <p>HoloDisplay: kitchen countertop floating display (CES 2025). Odyssey 3D: 32" glasses-free gaming monitor, 6K. Consumer products only &mdash; Samsung has NOT entered enterprise holographic communications. A kitchen appliance and gaming monitor, not telepresence.</p>
+
+  <h3>9.3 MDH Hologram</h3>
+  <div class="comp-meta"><span>mdhhologram.com</span><span class="comp-tag indirect" style="padding:2px 8px;">Indirect</span></div>
+  <p>Specializes in holographic concerts and performer recreations (deceased artists). MiniMagic (compact), IceMagic (events). Entertainment/events focus only. Proto does all that AND adds two-way communication, AI, fleet management, and multi-vertical deployment.</p>
+
+  <h3>9.4 Leia Inc. / Immersity</h3>
+  <div class="comp-meta"><span>HQ: Menlo Park, CA</span><span>leiainc.com</span><span class="comp-tag indirect" style="padding:2px 8px;">Minimal Threat</span></div>
+  <p>Discontinued hardware (Lume Pad 2, August 2025). Pivoted to software licensing (Immersity platform). 1,500+ patents. No longer in the holographic display business &mdash; licensing patents. Not a competitive concern.</p>
+
+  <h3>9.5 Kaleida</h3>
+  <div class="comp-meta"><span>HQ: London, UK</span><span>wearekaleida.com</span><span class="comp-tag indirect" style="padding:2px 8px;">Not a product competitor</span></div>
+  <p>Experiential holographic event production company. Services-based model (projects start at ~$30K). Creates bespoke holographic installations. Not a hardware product competitor &mdash; more of an event production house.</p>
+</section>
+
+<!-- Comparison Matrix -->
+<section class="chapter" id="matrix">
+  <h2>Comparison Matrix</h2>
+  <p>Use this table in sales conversations to show Proto's breadth vs. single-capability competitors.</p>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Capability</th><th>Proto</th><th>HYPERVSN</th><th>Looking Glass</th><th>Holoconnects</th><th>Realfiction</th><th>Voxon</th><th>Google Beam</th><th>Samsung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Life-size human hologram</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="no">No (seated)</td><td class="no">No</td></tr>
+      <tr><td>Two-way live communication</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td></tr>
+      <tr><td>AI avatars / conversational AI</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="partial">Limited</td><td class="no">No</td></tr>
+      <tr><td>Desktop form factor</td><td class="yes">YES (M2)</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Full-body form factor</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Pre-recorded content</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>No glasses required</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td></tr>
+      <tr><td>Enterprise fleet management</td><td class="yes">YES</td><td class="partial">Limited</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>SOC-2 / HIPAA</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="yes">YES</td><td class="no">No</td></tr>
+      <tr><td>Celebrity/entertainment</td><td class="strong">STRONG</td><td class="partial">Limited</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Retail deployments</td><td class="strong">STRONG</td><td class="strong">STRONG</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="strong">STRONG</td><td class="partial">Limited</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Education (50+ institutions)</td><td class="yes">YES</td><td class="no">No</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="no">No</td><td class="partial">Limited</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Healthcare deployments</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="partial">Limited</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Text-to-hologram</td><td class="yes">YES</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Commercially available NOW</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="yes">YES</td><td class="partial">Limited</td><td class="partial">Consumer</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- Objection Handlers -->
+<section class="chapter" id="objections">
+  <h2>Sales Objection Handlers</h2>
+  <div class="card highlight">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-apply">Apply</span> Respond to competitive objections with fact-based positioning.<br>
+    <span class="bloom-badge bloom-create">Create</span> Adapt talk tracks to specific prospect situations.
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">"Why not just use a big screen / video wall?"</div>
+    <p>"Proto devices engage visitors for nearly 10 minutes on average &mdash; far exceeding any digital sign or video wall. The holographic effect creates an emotional response that flat screens cannot match. In healthcare, patients report feeling more connected to holographic doctors than video call doctors. In retail, the stopping power of a hologram drives foot traffic and dwell time that no flat screen achieves. This isn't an incremental improvement over video &mdash; it's a fundamentally different experience."</p>
+  </div>
+
+  <div class="objection-box">
+    <div class="objection-label">"The price is too high"</div>
+    <p>"Proto offers options at every level. The M2 starts at a fraction of the cost of the Luma or Epic, and we offer purchase, lease, and rental options. Consider the ROI: Proto devices engage visitors for 10 minutes on average. In retail, that dwell time converts directly to revenue. In healthcare, one holographic specialist visit to a rural clinic replaces thousands of dollars in patient travel. In education, one Proto device replaces the cost of flying in guest lecturers all year. And with ARHT's bankruptcy, Proto is the only scaled holographic telepresence provider in the market &mdash; this is the platform that enterprise buyers can commit to long-term."</p>
+  </div>
+
+  <h3>Quick Reference: When Prospects Mention Competitors</h3>
+  <table>
+    <thead><tr><th>They mention...</th><th>They probably need...</th><th>Proto advantage</th></tr></thead>
+    <tbody>
+      <tr><td>HYPERVSN</td><td>Retail signage, advertising</td><td>Proto does signage AND communication AND AI</td></tr>
+      <tr><td>Looking Glass</td><td>3D visualization, design</td><td>Proto does visualization AND live telepresence</td></tr>
+      <tr><td>Holoconnects</td><td>Hotel/hospitality kiosk</td><td>Broader verticals, stronger clients, enterprise compliance</td></tr>
+      <tr><td>Realfiction</td><td>Product display case</td><td>Proto is a platform, not a display case</td></tr>
+      <tr><td>Voxon</td><td>3D model visualization</td><td>Proto displays life-size humans, not 10" objects</td></tr>
+      <tr><td>Google Beam</td><td>Enterprise video conferencing</td><td>Proto does conferencing AND events AND retail AND AI</td></tr>
+      <tr><td>Samsung</td><td>Consumer 3D display</td><td>Samsung isn't in enterprise holographic communications</td></tr>
+      <tr><td>ARHT Media</td><td>Holographic telepresence</td><td>ARHT is bankrupt. Proto is the surviving leader.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- MicroSim: Market Position -->
+<section class="chapter" id="microsim-section">
+  <h2>Market Position MicroSim</h2>
+  <p>Interactive visualization of the competitive landscape. Each bubble represents a competitor sized by market presence. Axes show capability breadth vs. communication capability.</p>
+  <div class="microsim-container">
+    <h4>Competitive Landscape Map</h4>
+    <p class="sim-desc">Hover over bubbles for details. X-axis: capability breadth. Y-axis: communication capability. Bubble size: market presence.</p>
+    <div id="sim1"></div>
+  </div>
+</section>
+
+<!-- Competitive Knowledge Graph -->
+<section class="chapter" id="comp-graph-section">
+  <h2>Competitive Knowledge Graph</h2>
+  <p>Explore how competitors relate to market segments and capabilities. Drag nodes to rearrange. Scroll to zoom.</p>
+  <div id="comp-graph"></div>
+
+  <h3>Understanding the Graph</h3>
+  <div class="card">
+    <h4>Node Color Legend</h4>
+    <ul>
+      <li><span style="color:#00d4ff; font-weight:600;">Cyan</span> &mdash; <strong>Proto Hologram</strong> (center)</li>
+      <li><span style="color:#ef5350; font-weight:600;">Red</span> &mdash; <strong>Direct competitors</strong> (Holoconnects, Google Beam)</li>
+      <li><span style="color:#ffc107; font-weight:600;">Gold</span> &mdash; <strong>Indirect competitors</strong> (HYPERVSN, Looking Glass, Realfiction, Voxon, Samsung)</li>
+      <li><span style="color:#888; font-weight:600;">Gray</span> &mdash; <strong>Bankrupt/exited</strong> (ARHT Media, Leia)</li>
+      <li><span style="color:#66bb6a; font-weight:600;">Green</span> &mdash; <strong>Market segments</strong></li>
+      <li><span style="color:#7b2fff; font-weight:600;">Purple</span> &mdash; <strong>Key capabilities</strong></li>
+    </ul>
+  </div>
+</section>
+
+<!-- Bloom's Taxonomy -->
+<section class="chapter" id="blooms">
+  <h2>Bloom's Taxonomy Framework</h2>
+  <p>This textbook structures learning across six cognitive levels to build competitive intelligence mastery.</p>
+
+  <div class="card">
+    <h4><span class="bloom-badge bloom-remember">Remember</span> Level 1</h4>
+    <p>Recall competitor names, products, and pricing. <em>Example: List Proto's three device models and their price ranges.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-understand">Understand</span> Level 2</h4>
+    <p>Explain competitive differences. <em>Example: Describe why HYPERVSN is an indirect competitor rather than direct.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-apply">Apply</span> Level 3</h4>
+    <p>Use competitive positioning in conversations. <em>Example: Deliver the Google Beam objection handler in a role-play scenario.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-analyze">Analyze</span> Level 4</h4>
+    <p>Compare technologies and strategies. <em>Example: Analyze why ARHT failed and Proto succeeded.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-evaluate">Evaluate</span> Level 5</h4>
+    <p>Assess threats and opportunities. <em>Example: Evaluate Google Beam's long-term competitive threat to Proto.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-create">Create</span> Level 6</h4>
+    <p>Develop new strategies. <em>Example: Design an outreach campaign targeting former ARHT Media clients.</em></p>
+  </div>
+</section>
+
+<!-- Glossary -->
+<section class="chapter" id="glossary-section">
+  <h2>Glossary</h2>
+  <input type="text" id="glossary-search" placeholder="Search competitive terms..." oninput="filterGlossary()">
+  <div class="glossary-grid" id="glossary-grid"></div>
+</section>
+
+</main>
+
+<script>
+// ===================== GLOSSARY =====================
+const glossaryTerms = [
+  { term: "Autostereoscopic Display", def: "A display that creates a 3D effect without requiring glasses, typically using lenticular lenses or eye-tracking. Used by Samsung Odyssey 3D. Limited to a narrow viewing angle and usually single-viewer." },
+  { term: "Battlecard", def: "A concise sales document providing competitive intelligence, objection handlers, and positioning statements for use during sales conversations." },
+  { term: "CAGR", def: "Compound Annual Growth Rate. The holographic display market is growing at 18-26% CAGR, with the telepresence sub-market at 28.7% CAGR." },
+  { term: "Competitive Moat", def: "A sustainable competitive advantage that protects a company's market position. Proto has five identified moats: platform completeness, brand portfolio, ARHT bankruptcy, vertical breadth, and full-stack AI." },
+  { term: "Direct Competitor", def: "A company offering a similar product for the same use case. Proto's direct competitors include Holoconnects (holographic displays with AI) and Google Beam (holographic telepresence)." },
+  { term: "Fleet Management", def: "The ability to remotely monitor, control, and update multiple devices from a centralized dashboard. A Proto competitive advantage that most competitors lack." },
+  { term: "Holographic Telepresence", def: "Live, two-way holographic communication where a person is captured by camera and projected in real-time on a remote holographic display. Proto's core capability." },
+  { term: "Indirect Competitor", def: "A company whose product overlaps with some of Proto's capabilities but serves a different primary use case. Examples: HYPERVSN (signage), Looking Glass (3D visualization), Realfiction (product displays)." },
+  { term: "LED Fan Display", def: "HYPERVSN's technology. Spinning LED-equipped blades create a persistence-of-vision effect, making content appear to float in air. Cannot display realistic humans or enable communication." },
+  { term: "Light Field Display", def: "Looking Glass Factory's technology. Projects multiple simultaneous perspectives of a 3D scene for glasses-free viewing. Good for 3D model visualization but not designed for telepresence." },
+  { term: "Objection Handler", def: "A prepared response to a common sales objection or competitive comparison, designed to factually position Proto's advantages without disparaging competitors." },
+  { term: "Pepper's Ghost", def: "An 1862 illusion technique using angled glass to reflect images. Used by Realfiction/Dreamoc and formerly by ARHT Media. The oldest holographic display technology still in commercial use." },
+  { term: "Persistence of Vision", def: "The optical phenomenon where the brain retains an image briefly after it disappears. HYPERVSN exploits this by spinning LED blades faster than the eye can track." },
+  { term: "ProtoGPT", def: "Proto's proprietary conversational AI engine powering autonomous holographic avatars. A key differentiator — no competitor offers equivalent built-in conversational intelligence." },
+  { term: "RetailSage", def: "Proto's AI platform for retail, enabling holographic conversational AI for product recommendations and customer interaction. Unique to Proto." },
+  { term: "SOC-2 Type II", def: "Security compliance certification covering data security, availability, and privacy. Proto is SOC-2 Type II compliant; most competitors are not. Critical for enterprise and healthcare sales." },
+  { term: "Volumetric Display", def: "A display creating visual representations in three dimensions. Voxon Photonics uses true volumetric (spinning LEDs creating light points). Proto uses an enclosed volumetric approach with flat display optics." },
+  { term: "Wearable-Free", def: "Proto's core differentiator: holographic effects visible to naked eye without VR headsets or AR glasses. All competitors listed in this textbook are also wearable-free." }
+];
+
+function renderGlossary(terms) {
+  const grid = document.getElementById('glossary-grid');
+  grid.innerHTML = terms.map(t =>
+    `<div class="glossary-item"><dl><dt>${t.term}</dt><dd>${t.def}</dd></dl></div>`
+  ).join('');
+}
+
+function filterGlossary() {
+  const q = document.getElementById('glossary-search').value.toLowerCase();
+  const filtered = glossaryTerms.filter(t =>
+    t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q)
+  );
+  renderGlossary(filtered);
+}
+
+renderGlossary(glossaryTerms);
+
+// ===================== COMPETITIVE KNOWLEDGE GRAPH =====================
+const cgNodes = new vis.DataSet([
+  // Proto (center)
+  { id: 1, label: "Proto\nHologram", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#fff", size: 16, bold: true }, size: 40 },
+  // Direct competitors
+  { id: 2, label: "Holoconnects", color: { background: "#ef5350", border: "#c62828" }, font: { color: "#fff" }, size: 22 },
+  { id: 3, label: "Google Beam\n/ HP", color: { background: "#ef5350", border: "#c62828" }, font: { color: "#fff" }, size: 22 },
+  // Indirect competitors
+  { id: 4, label: "HYPERVSN", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 20 },
+  { id: 5, label: "Looking\nGlass", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 20 },
+  { id: 6, label: "Realfiction\nDreamoc", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 18 },
+  { id: 7, label: "Voxon", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 16 },
+  { id: 8, label: "Samsung", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 18 },
+  { id: 9, label: "MDH\nHologram", color: { background: "#ffc107", border: "#f9a825" }, font: { color: "#fff" }, size: 16 },
+  // Bankrupt / exited
+  { id: 10, label: "ARHT Media\n(Bankrupt)", color: { background: "#666", border: "#444" }, font: { color: "#ccc" }, size: 18 },
+  { id: 11, label: "Leia / Immersity\n(Exited HW)", color: { background: "#666", border: "#444" }, font: { color: "#ccc" }, size: 16 },
+  // Market segments
+  { id: 20, label: "Telepresence", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 21, label: "AI Assistants", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 22, label: "Digital\nSignage", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 23, label: "3D\nVisualization", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 24, label: "Entertainment", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 18 },
+  { id: 25, label: "Consumer\n3D", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#fff" }, size: 16 },
+  // Capabilities
+  { id: 30, label: "Full-Stack\nPlatform", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 16 },
+  { id: 31, label: "Enterprise\nCompliance", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 16 },
+]);
+
+const cgEdges = new vis.DataSet([
+  // Proto connects to all segments
+  { from: 1, to: 20 }, { from: 1, to: 21 }, { from: 1, to: 22 }, { from: 1, to: 23 }, { from: 1, to: 24 },
+  // Proto capabilities
+  { from: 1, to: 30 }, { from: 1, to: 31 },
+  // Direct competitors to segments
+  { from: 2, to: 20 }, { from: 2, to: 21 },
+  { from: 3, to: 20 },
+  // Indirect to segments
+  { from: 4, to: 22 },
+  { from: 5, to: 23 },
+  { from: 6, to: 22 },
+  { from: 7, to: 23 },
+  { from: 8, to: 25 },
+  { from: 9, to: 24 },
+  // Bankrupt
+  { from: 10, to: 20, dashes: true },
+  { from: 11, to: 25, dashes: true },
+  // Google also has compliance
+  { from: 3, to: 31 },
+]);
+
+const cgContainer = document.getElementById('comp-graph');
+const cgData = { nodes: cgNodes, edges: cgEdges };
+const cgOptions = {
+  nodes: { shape: 'dot', borderWidth: 2 },
+  edges: { color: { color: '#1e3354', highlight: '#00d4ff' }, width: 1.5, smooth: { type: 'continuous' } },
+  physics: { solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.006, springLength: 150 } },
+  interaction: { hover: true, zoomView: true, dragView: true }
+};
+new vis.Network(cgContainer, cgData, cgOptions);
+
+// ===================== MICROSIM: Competitive Landscape Map =====================
+new p5(function(p) {
+  let W = 800, H = 480;
+
+  const competitors = [
+    { name: "Proto", x: 0.88, y: 0.85, size: 45, color: [0, 212, 255], desc: "Full platform: telepresence + AI + signage + entertainment" },
+    { name: "HYPERVSN", x: 0.3, y: 0.1, size: 32, color: [255, 193, 7], desc: "LED fan signage only, no communication" },
+    { name: "Looking Glass", x: 0.45, y: 0.15, size: 22, color: [255, 193, 7], desc: "3D visualization monitors, no telepresence" },
+    { name: "Holoconnects", x: 0.55, y: 0.65, size: 20, color: [239, 83, 80], desc: "Holographic displays + AI, hospitality focus" },
+    { name: "Google Beam", x: 0.35, y: 0.75, size: 28, color: [239, 83, 80], desc: "Seated telepresence only, not yet available" },
+    { name: "Realfiction", x: 0.25, y: 0.08, size: 20, color: [255, 193, 7], desc: "Product display cases, Pepper's Ghost" },
+    { name: "Voxon", x: 0.2, y: 0.12, size: 12, color: [255, 193, 7], desc: "True volumetric, 10-inch display only" },
+    { name: "Samsung", x: 0.15, y: 0.05, size: 25, color: [255, 193, 7], desc: "Consumer displays, not in enterprise holographics" },
+    { name: "MDH", x: 0.4, y: 0.3, size: 14, color: [255, 193, 7], desc: "Entertainment/concerts only" },
+    { name: "ARHT", x: 0.5, y: 0.55, size: 16, color: [100, 100, 100], desc: "BANKRUPT - Oct 2024" },
+    { name: "Leia", x: 0.12, y: 0.08, size: 10, color: [100, 100, 100], desc: "Exited hardware market" },
+  ];
+
+  let hoveredComp = null;
+
+  p.setup = function() {
+    let canvas = p.createCanvas(W, H);
+    canvas.parent('sim1');
+  };
+
+  p.draw = function() {
+    p.background(12, 26, 46);
+
+    // Axes
+    let mx = 70, my = 40, gw = W - mx - 40, gh = H - my - 60;
+
+    // Grid
+    p.stroke(30, 51, 84, 60);
+    p.strokeWeight(0.5);
+    for (let i = 0; i <= 4; i++) {
+      let gx = mx + (gw / 4) * i;
+      let gy = my + (gh / 4) * i;
+      p.line(gx, my, gx, my + gh);
+      p.line(mx, gy, mx + gw, gy);
+    }
+
+    // Axis labels
+    p.noStroke();
+    p.fill(136, 153, 170);
+    p.textSize(11);
+    p.textAlign(p.CENTER);
+    p.text("Capability Breadth", mx + gw / 2, H - 8);
+
+    p.push();
+    p.translate(14, my + gh / 2);
+    p.rotate(-p.HALF_PI);
+    p.text("Communication Capability", 0, 0);
+    p.pop();
+
+    // Axis endpoints
+    p.textSize(9);
+    p.fill(100);
+    p.textAlign(p.LEFT);
+    p.text("Low", mx, H - 24);
+    p.textAlign(p.RIGHT);
+    p.text("High", mx + gw, H - 24);
+    p.textAlign(p.LEFT);
+    p.text("None", 28, my + gh);
+    p.text("Full", 28, my + 10);
+
+    // Proto quadrant highlight
+    p.noStroke();
+    p.fill(0, 212, 255, 8);
+    p.rect(mx + gw * 0.5, my, gw * 0.5, gh * 0.5, 4);
+
+    p.fill(0, 212, 255, 20);
+    p.textSize(9);
+    p.textAlign(p.RIGHT);
+    p.text("Proto's Territory", mx + gw - 8, my + 14);
+
+    // Competitors
+    hoveredComp = null;
+    for (let c of competitors) {
+      let cx = mx + c.x * gw;
+      let cy = my + (1 - c.y) * gh;
+      let d = p.dist(p.mouseX, p.mouseY, cx, cy);
+      let isHovered = d < c.size + 5;
+      if (isHovered) hoveredComp = c;
+
+      // Glow
+      p.noStroke();
+      p.fill(c.color[0], c.color[1], c.color[2], isHovered ? 40 : 15);
+      p.ellipse(cx, cy, c.size * 2.5);
+
+      // Bubble
+      p.fill(c.color[0], c.color[1], c.color[2], isHovered ? 220 : 160);
+      p.ellipse(cx, cy, c.size);
+
+      // Label
+      p.fill(220);
+      p.textSize(10);
+      p.textAlign(p.CENTER);
+      p.text(c.name, cx, cy + c.size / 2 + 14);
+    }
+
+    // Tooltip
+    if (hoveredComp) {
+      let tx = p.mouseX + 15;
+      let ty = p.mouseY - 10;
+      if (tx + 250 > W) tx = p.mouseX - 260;
+      if (ty < 10) ty = 10;
+
+      p.fill(18, 31, 54, 240);
+      p.stroke(0, 212, 255, 80);
+      p.strokeWeight(1);
+      p.rect(tx, ty, 245, 52, 6);
+
+      p.noStroke();
+      p.fill(0, 212, 255);
+      p.textSize(12);
+      p.textAlign(p.LEFT);
+      p.text(hoveredComp.name, tx + 10, ty + 18);
+
+      p.fill(180);
+      p.textSize(10);
+      p.text(hoveredComp.desc, tx + 10, ty + 34, 225, 40);
+    }
+
+    // Legend
+    p.noStroke();
+    p.textSize(9);
+    p.textAlign(p.LEFT);
+
+    p.fill(0, 212, 255); p.ellipse(mx + 5, H - 44, 8);
+    p.fill(170); p.text("Proto", mx + 14, H - 41);
+
+    p.fill(239, 83, 80); p.ellipse(mx + 65, H - 44, 8);
+    p.fill(170); p.text("Direct", mx + 74, H - 41);
+
+    p.fill(255, 193, 7); p.ellipse(mx + 120, H - 44, 8);
+    p.fill(170); p.text("Indirect", mx + 129, H - 41);
+
+    p.fill(100); p.ellipse(mx + 185, H - 44, 8);
+    p.fill(170); p.text("Bankrupt/Exited", mx + 194, H - 41);
+  };
+}, 'sim1');
+
+// ===================== SIDEBAR ACTIVE STATE =====================
+const sections = document.querySelectorAll('.chapter');
+const navLinks = document.querySelectorAll('#sidebar nav a:not(.nav-section)');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.offsetTop - 100;
+    if (window.pageYOffset >= top) {
+      current = section.getAttribute('id');
+    }
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

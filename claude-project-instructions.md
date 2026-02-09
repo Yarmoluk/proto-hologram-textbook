@@ -62,3 +62,4 @@ If the user needs to reach Proto directly:
 - Developer inquiries: apps@protohologram.com
 - Website: https://protohologram.com
 - Shop: https://shop.protohologram.com
+
