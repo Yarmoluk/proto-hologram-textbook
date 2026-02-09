@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proto Hologram Intelligent Textbook</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root {
+    --primary: #0a1628;
+    --secondary: #1a2d50;
+    --accent: #00d4ff;
+    --accent2: #7b2fff;
+    --accent3: #ff2d95;
+    --text: #e0e8f0;
+    --text-muted: #8899aa;
+    --bg: #0c1a2e;
+    --card-bg: #121f36;
+    --border: #1e3354;
+    --sidebar-w: 280px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--primary);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    padding: 20px 0;
+  }
+
+  #sidebar .logo {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  #sidebar .logo h2 {
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+
+  #sidebar .logo p {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 10px 24px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--accent);
+    background: rgba(0, 212, 255, 0.05);
+    border-left-color: var(--accent);
+  }
+
+  #sidebar nav a.nav-section {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent2);
+    padding-top: 18px;
+    pointer-events: none;
+    font-weight: 600;
+  }
+
+  #menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px; left: 15px;
+    z-index: 200;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  /* Main content */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    max-width: 900px;
+    padding: 40px 50px 80px;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 20px;
+    margin-bottom: 50px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.08));
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 2.6rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    font-weight: 800;
+  }
+
+  .hero p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Chapter sections */
+  .chapter {
+    margin-bottom: 60px;
+    scroll-margin-top: 30px;
+  }
+
+  .chapter h2 {
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .chapter h3 {
+    font-size: 1.25rem;
+    color: var(--accent2);
+    margin: 28px 0 12px;
+  }
+
+  .chapter h4 {
+    font-size: 1.05rem;
+    color: var(--accent3);
+    margin: 20px 0 8px;
+  }
+
+  .chapter p {
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .chapter ul, .chapter ol {
+    margin: 10px 0 16px 24px;
+    color: var(--text);
+  }
+
+  .chapter li { margin-bottom: 6px; }
+
+  /* Info cards */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+
+  .card.highlight {
+    border-left: 4px solid var(--accent);
+  }
+
+  .card.bloom {
+    border-left: 4px solid var(--accent2);
+  }
+
+  .card h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  /* Specs table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+
+  th {
+    background: var(--secondary);
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+  }
+
+  td { background: var(--card-bg); }
+  tr:hover td { background: rgba(0,212,255,0.04); }
+
+  /* Bloom taxonomy badges */
+  .bloom-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+
+  .bloom-remember { background: rgba(76,175,80,0.2); color: #66bb6a; }
+  .bloom-understand { background: rgba(33,150,243,0.2); color: #42a5f5; }
+  .bloom-apply { background: rgba(255,193,7,0.2); color: #ffc107; }
+  .bloom-analyze { background: rgba(255,87,34,0.2); color: #ff7043; }
+  .bloom-evaluate { background: rgba(156,39,176,0.2); color: #ab47bc; }
+  .bloom-create { background: rgba(255,45,149,0.2); color: #ff2d95; }
+
+  /* MicroSim containers */
+  .microsim-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 24px 0;
+    text-align: center;
+  }
+
+  .microsim-container h4 {
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .microsim-container p.sim-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .microsim-container canvas {
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Knowledge graph */
+  #knowledge-graph {
+    width: 100%;
+    height: 500px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 20px 0;
+  }
+
+  /* Glossary */
+  #glossary-search {
+    width: 100%;
+    padding: 12px 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    outline: none;
+  }
+
+  #glossary-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+  }
+
+  .glossary-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .glossary-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+
+  .glossary-item dt {
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+  }
+
+  .glossary-item dd {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #menu-toggle { display: block; }
+    #main { margin-left: 0; padding: 60px 20px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<aside id="sidebar">
+  <div class="logo">
+    <h2>PROTO HOLOGRAM</h2>
+    <p>Intelligent Textbook</p>
+  </div>
+  <nav>
+    <a class="nav-section">Chapters</a>
+    <a href="#ch1">1. Introduction to Holographic Technology</a>
+    <a href="#ch2">2. Proto Hologram Products</a>
+    <a href="#ch3">3. How It Works</a>
+    <a href="#ch4">4. Content Creation</a>
+    <a href="#ch5">5. Applications</a>
+    <a href="#ch6">6. The ProtoOS Platform</a>
+    <a href="#ch7">7. Future of Spatial Computing</a>
+    <a class="nav-section">Interactive</a>
+    <a href="#microsims">MicroSims</a>
+    <a href="#knowledge-graph-section">Knowledge Graph</a>
+    <a class="nav-section">Reference</a>
+    <a href="#blooms">Bloom's Taxonomy</a>
+    <a href="#glossary-section">Glossary</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Proto Hologram</h1>
+  <p>An intelligent textbook exploring holographic communication technology, spatial computing, and the future of human interaction &mdash; with interactive simulations and a structured learning framework.</p>
+</div>
+
+<!-- Chapter 1 -->
+<section class="chapter" id="ch1">
+  <h2>Chapter 1: Introduction to Holographic Technology</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-remember">Remember</span> Define holography and distinguish it from other display technologies.<br>
+    <span class="bloom-badge bloom-understand">Understand</span> Explain the historical evolution from Pepper's Ghost to modern volumetric displays.
+  </div>
+
+  <h3>1.1 What Is a Hologram?</h3>
+  <p>The word <em>hologram</em> derives from the Greek <em>holos</em> (whole) and <em>gramma</em> (message). In its strictest scientific definition, a hologram is a three-dimensional image created by the interference of light beams from a laser or other coherent light source. However, in modern commercial usage, the term encompasses a broader range of technologies that produce the <strong>illusion of three-dimensional imagery</strong> viewable without special eyewear.</p>
+
+  <p>Proto Hologram Inc. uses a proprietary volumetric display system that creates life-like, three-dimensional visual experiences inside a physical enclosure. Unlike traditional holograms based on laser interference patterns, Proto's approach combines high-resolution displays, precision optics, and spatial computing to project content that appears to float in space.</p>
+
+  <h3>1.2 A Brief History</h3>
+  <p>Holographic display technology has a rich lineage:</p>
+  <ul>
+    <li><strong>1862 &mdash; Pepper's Ghost:</strong> John Henry Pepper popularized an illusion technique using angled glass to reflect images, making "ghosts" appear on stage. This technique was later used to project Tupac Shakur at Coachella in 2012.</li>
+    <li><strong>1947 &mdash; Gabor's Holography:</strong> Dennis Gabor invented holography, earning the Nobel Prize in Physics in 1971.</li>
+    <li><strong>1960s &mdash; Laser Holograms:</strong> The invention of the laser enabled practical recording and reconstruction of true holograms.</li>
+    <li><strong>2018 &mdash; Proto (PORTL) Capsule:</strong> David Nussbaum, after 25 years in CBS Radio broadcasting, invented the first Proto hologram projection machine, originally called the PORTL Capsule, bringing volumetric display technology to commercial applications.</li>
+    <li><strong>2025 &mdash; Proto M2:</strong> Unveiled at CES 2025, the M2 Foundation Series represents the most advanced desktop hologram device, combining 12-core processing, 32GB RAM, and AI capabilities in a compact form factor.</li>
+  </ul>
+
+  <h3>1.3 Why Holographic Communication Matters</h3>
+  <p>Traditional video conferencing presents a flat, two-dimensional representation of people and objects. Holographic communication restores the sense of <strong>physical presence</strong> &mdash; depth, scale, and spatial context &mdash; that is lost in conventional video. This creates more engaging, memorable, and emotionally resonant interactions.</p>
+
+  <div class="card highlight">
+    <h4>Key Differentiator</h4>
+    <p>Proto requires <strong>no VR headsets, AR glasses, or wearable devices</strong>. The holographic effect is visible to the naked eye, making it instantly accessible to anyone who approaches the device. This "wearable-free" approach removes barriers to adoption and enables shared viewing experiences.</p>
+  </div>
+</section>
+
+<!-- Chapter 2 -->
+<section class="chapter" id="ch2">
+  <h2>Chapter 2: Proto Hologram Products</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-remember">Remember</span> Identify the three main Proto device models and their key specifications.<br>
+    <span class="bloom-badge bloom-understand">Understand</span> Compare the use cases for each device form factor.<br>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Evaluate which device best fits a given deployment scenario.
+  </div>
+
+  <h3>2.1 Product Line Overview</h3>
+  <p>Proto offers three primary hardware devices, each designed for different deployment contexts, plus a comprehensive software platform that unifies them all.</p>
+
+  <h4>Proto Luma</h4>
+  <p>The flagship life-size enterprise holographic display. With an 86-inch multi-touch screen standing nearly 7 feet tall, the Luma delivers full-scale holographic presentations for boardrooms, event stages, hospital lobbies, and retail flagships. It includes a 4K camera with 10x optical zoom, a 6-microphone array with hardware echo cancellation, and stereo speakers.</p>
+
+  <h4>Proto M2 Foundation Series</h4>
+  <p>Unveiled at CES 2025, the M2 is a desktop/tabletop device with a 21.5-inch volumetric multi-touch display. Despite its compact size (29.9 inches tall, 44.2 lbs), it packs a 12-core processor, 32GB LPDDR5 RAM, 11TB SSD storage, a 4K smart camera, WiFi 6e, and Thunderbolt 4 connectivity. The M2 is designed for offices, classrooms, clinics, and kiosks.</p>
+
+  <h4>Proto Epic</h4>
+  <p>The original full-size holographic display, taller than the average NBA player. Featuring 32GB RAM, 1TB SSD, an AI-enabled smart camera, and high-density multitouch, the Epic established Proto as the leader in commercial holographic communications.</p>
+
+  <h3>2.2 Technical Specifications Comparison</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Proto Luma</th>
+        <th>Proto M2</th>
+        <th>Proto Epic</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Display</td><td>86" Multi-Touch</td><td>21.5" Volumetric Multi-Touch</td><td>Full life-size</td></tr>
+      <tr><td>Height</td><td>~88" (7 ft)</td><td>~29.9"</td><td>&gt; 6'6"</td></tr>
+      <tr><td>Weight</td><td>410 lbs</td><td>44.2 lbs</td><td>400+ lbs</td></tr>
+      <tr><td>Camera</td><td>4K, 10x zoom</td><td>4K Smart Camera</td><td>AI-Enabled Smart Camera</td></tr>
+      <tr><td>RAM</td><td>&mdash;</td><td>32GB LPDDR5</td><td>32GB</td></tr>
+      <tr><td>Storage</td><td>&mdash;</td><td>11TB SSD</td><td>1TB SSD</td></tr>
+      <tr><td>Processor</td><td>&mdash;</td><td>12-Core, 4.6GHz</td><td>&mdash;</td></tr>
+      <tr><td>Audio</td><td>Stereo + 6-mic array</td><td>20W stereo + mic array</td><td>&mdash;</td></tr>
+      <tr><td>Touch</td><td>Multi-touch</td><td>10-point touchscreen</td><td>High-density multitouch</td></tr>
+      <tr><td>Network</td><td>2.5GbE, USB 3.0, HDMI</td><td>Thunderbolt 4, 2.5GbE, WiFi 6e</td><td>WiFi, Proto Cloud</td></tr>
+      <tr><td>Price Range</td><td>$29K&ndash;$65K</td><td>Contact Proto</td><td>$29K&ndash;$65K</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.3 Choosing the Right Device</h3>
+  <p>Device selection depends on the deployment environment:</p>
+  <ul>
+    <li><strong>Large venues, events, and lobbies:</strong> Proto Luma or Epic for life-size impact</li>
+    <li><strong>Offices, classrooms, and clinics:</strong> Proto M2 for accessible, portable holographic computing</li>
+    <li><strong>Retail kiosks and interactive displays:</strong> M2 for standalone operation with AI avatar capabilities</li>
+    <li><strong>Multi-location enterprise fleets:</strong> Mix of devices managed through ProtoOS cloud dashboard</li>
+  </ul>
+</section>
+
+<!-- Chapter 3 -->
+<section class="chapter" id="ch3">
+  <h2>Chapter 3: How It Works</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-understand">Understand</span> Describe the three technology layers: display, spatial computing, and AI.<br>
+    <span class="bloom-badge bloom-apply">Apply</span> Explain how black-background rendering creates the holographic illusion.<br>
+    <span class="bloom-badge bloom-analyze">Analyze</span> Distinguish between Proto's volumetric display approach and true laser holography.
+  </div>
+
+  <h3>3.1 Display Technology</h3>
+  <p>Proto devices use high-resolution displays within a carefully engineered enclosure to create the illusion of a three-dimensional space. The key principles:</p>
+  <ul>
+    <li><strong>Pure Black Background:</strong> Content is rendered against absolute black (#000000). Black pixels remain invisible while illuminated pixels produce the visual content, making subjects appear to float in space.</li>
+    <li><strong>Precision Optics:</strong> The enclosure's geometry, materials, and lighting are engineered to eliminate reflections and maximize the depth illusion.</li>
+    <li><strong>High Resolution:</strong> 4K-capable displays ensure fine detail and realistic rendering of human subjects.</li>
+  </ul>
+
+  <h3>3.2 Spatial Computing</h3>
+  <p>Beyond passive display, Proto devices incorporate a spatial computing layer that makes them aware of their environment:</p>
+  <ul>
+    <li><strong>Depth Sensors &amp; Cameras:</strong> Detect the position, movement, and gestures of people nearby.</li>
+    <li><strong>Environmental Awareness:</strong> Holograms can understand spatial context and respond to the physical space around them.</li>
+    <li><strong>Dynamic Perception:</strong> AI avatars analyze spatial context, emotional tone, and audience behavior, modifying their voice, expression, and posture in real-time.</li>
+    <li><strong>Two-Way Presence:</strong> Both the presenter and the audience can perceive and interact with each other, enabling genuine bidirectional communication.</li>
+  </ul>
+
+  <h3>3.3 AI Integration</h3>
+  <p>Proto's devices are AI-native, incorporating multiple forms of artificial intelligence:</p>
+  <ul>
+    <li><strong>Computer Vision:</strong> Audience detection, gaze tracking, and environmental analysis.</li>
+    <li><strong>Natural Language Processing:</strong> Conversational AI avatars that understand and respond to speech in real-time.</li>
+    <li><strong>ProtoGPT:</strong> Proto's own conversational intelligence engine, enabling autonomous AI hologram agents.</li>
+    <li><strong>Real-Time Translation:</strong> Multi-language support allowing holographic presenters to speak any language. For example, UFC president Dana White appeared at NocheUFC speaking fluent Spanish through AI translation.</li>
+    <li><strong>Universal LLM Support:</strong> Modular integration with all major large language models through Proto's API ecosystem.</li>
+  </ul>
+
+  <div class="card highlight">
+    <h4>Three-Layer Architecture</h4>
+    <p><strong>Presentation Layer:</strong> AI avatar rendering, programmable holographic interfaces, marketplace apps, no-code tools.<br>
+    <strong>Management Layer:</strong> Infrastructure for scaling across multiple devices, fleet management, enterprise security.<br>
+    <strong>Integration Layer:</strong> Universal LLM support, plug-and-play AI components, simplified API ecosystem.</p>
+  </div>
+</section>
+
+<!-- Chapter 4 -->
+<section class="chapter" id="ch4">
+  <h2>Chapter 4: Content Creation</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-apply">Apply</span> Prepare content for holographic display following Proto's guidelines.<br>
+    <span class="bloom-badge bloom-create">Create</span> Design a content workflow for a specific use case using live beaming, pre-recorded video, or text-to-hologram.
+  </div>
+
+  <h3>4.1 Live Beaming</h3>
+  <p>"Beaming" is Proto's term for live holographic telepresence. Any person with a 4K camera &mdash; even an iPhone &mdash; can beam into a Proto device in real-time from anywhere in the world.</p>
+  <ul>
+    <li><strong>Requirements:</strong> 4K camera, 25 Mbps internet (both upload and download).</li>
+    <li><strong>Proto Studio App:</strong> A browser-based application supporting iPhone and iPad, offering a simpler alternative to traditional video conferencing setups.</li>
+    <li><strong>Bidirectional:</strong> The presenter sees and interacts with the audience through the device's built-in camera and microphone array.</li>
+  </ul>
+
+  <h3>4.2 Pre-Recorded Content</h3>
+  <p>For non-live content, videos must follow specific guidelines to produce the holographic effect:</p>
+  <ul>
+    <li><strong>Background:</strong> Must be pure black (#000000). Even dark gray will break the illusion. No environmental lighting, clouds, or floor surfaces.</li>
+    <li><strong>Lighting:</strong> Subjects are lit against a void of pure black with carefully controlled illumination.</li>
+    <li><strong>Format:</strong> MP4, AVI, or MOV at minimum 24 FPS and up to 4K resolution.</li>
+    <li><strong>Duration:</strong> Looping 10&ndash;15 second videos are highly effective for kiosk and display applications.</li>
+    <li><strong>Upload:</strong> Content is managed through Proto's cloud-based CMS (Content Management System).</li>
+  </ul>
+
+  <h3>4.3 Text-to-Hologram</h3>
+  <p>Through a partnership with AWS, Proto created a groundbreaking <strong>Text-to-Hologram pipeline</strong> that democratizes content creation:</p>
+  <ul>
+    <li>Users type a text description of what they want to see.</li>
+    <li>The system uses Amazon Titan Image Generator and Stable Video Diffusion to generate animated holographic content.</li>
+    <li>Content is produced in <strong>under 2 minutes</strong>.</li>
+    <li>No proficiency in 3D modeling, texturing, lighting, or rendering is required.</li>
+  </ul>
+
+  <h3>4.4 AI Avatar Content</h3>
+  <p>Proto's AI avatars represent an entirely new content paradigm:</p>
+  <ul>
+    <li>Photorealistic, multilingual digital humans that operate autonomously.</li>
+    <li>Connected to custom knowledge bases, enterprise databases, and LLMs.</li>
+    <li>Respond to visitors in real-time with conversational intelligence.</li>
+    <li>Can be deployed to holographic devices or traditional displays.</li>
+    <li>Evolve with curricula, product catalogs, or business needs.</li>
+  </ul>
+</section>
+
+<!-- Chapter 5 -->
+<section class="chapter" id="ch5">
+  <h2>Chapter 5: Applications</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-understand">Understand</span> Identify key use cases across education, healthcare, retail, enterprise, and entertainment.<br>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Assess the impact of holographic technology on a specific industry.<br>
+    <span class="bloom-badge bloom-create">Create</span> Propose a holographic deployment strategy for a given scenario.
+  </div>
+
+  <h3>5.1 Education</h3>
+  <p>Proto is deployed in over 50 universities worldwide, transforming how students learn:</p>
+  <ul>
+    <li><strong>Guest Lecturers:</strong> Beam in global experts, alumni, or industry leaders without travel. The University of Central Florida beamed a doctor from Australia to teach students in Florida.</li>
+    <li><strong>Immersive Learning:</strong> 3D anatomical models, interactive science demonstrations, and ASL instruction.</li>
+    <li><strong>AI Tutors:</strong> Conversational avatars that respond to student questions in real-time and evolve with curricula.</li>
+    <li><strong>Campus Connectivity:</strong> Link multiple locations for shared classes, labs, and assemblies.</li>
+    <li><strong>LMS Integration:</strong> Seamless integration with existing audiovisual setups and learning management systems.</li>
+  </ul>
+
+  <h3>5.2 Healthcare</h3>
+  <p>David Nussbaum was named to the TIME100 Health list in 2025 for Proto's impact on healthcare:</p>
+  <ul>
+    <li><strong>Telemedicine:</strong> Doctors beam into clinics for pre/post-surgery consultations, virtual rounds, and treatment discussions. West Cancer Center uses 3D oncologist projections.</li>
+    <li><strong>Medical Education:</strong> 3D interactive anatomical models for training. UCF uses Proto for patient simulation, Parkinson's diagnosis training, and speech-language pathology.</li>
+    <li><strong>Rural Access:</strong> Beam specialists to rural clinics, reducing travel time and expanding access to underserved communities.</li>
+    <li><strong>Patient Engagement:</strong> Mental health check-ins, family visits, and care plan discussions with greater emotional connection than video calls.</li>
+  </ul>
+
+  <h3>5.3 Retail</h3>
+  <ul>
+    <li><strong>AI Retail Associates:</strong> Photorealistic, multilingual avatars that greet, guide, and support shoppers. Cisco partnered with Proto for "Kailey," an AI chatbot demonstrated at NRF.</li>
+    <li><strong>Product Displays:</strong> 3D interactive showcases for product launches and promotions.</li>
+    <li><strong>Celebrity Integration:</strong> H&amp;M projected fashion icon Iris Apfel holographically at a fashion launch. The Walmart Museum features a Sam Walton hologram.</li>
+    <li><strong>Engagement:</strong> Proto devices engage visitors for an average of nearly 10 minutes &mdash; far exceeding typical digital signage.</li>
+  </ul>
+
+  <h3>5.4 Enterprise</h3>
+  <ul>
+    <li><strong>Holographic Meetings:</strong> Life-sized holographic conferencing that eliminates travel while preserving presence.</li>
+    <li><strong>Staffing Solutions:</strong> AI avatars addressing staffing shortages with conversational automation at reception desks, help counters, and information booths.</li>
+    <li><strong>System Integration:</strong> Connect to existing POS systems, CRM platforms, and enterprise software.</li>
+    <li><strong>Adoption:</strong> Over 20 Fortune 500 companies are Proto clients or partners.</li>
+  </ul>
+
+  <h3>5.5 Entertainment &amp; Live Events</h3>
+  <ul>
+    <li><strong>Live Beaming:</strong> Ellen DeGeneres, Usain Bolt, Lewis Hamilton, Jimmy Kimmel, and Jack Black have all appeared as Proto holograms.</li>
+    <li><strong>Sports:</strong> Teams from every U.S. professional sports league, including ESPN College Game Day and Super Bowl activations.</li>
+    <li><strong>Memorial Concerts:</strong> Juan Gabriel and Jenni Rivera digital resurrection concerts.</li>
+    <li><strong>Interactive Marketing:</strong> Minecraft Movie mall activations with spatially aware holographic characters that interact with passersby.</li>
+  </ul>
+</section>
+
+<!-- Chapter 6 -->
+<section class="chapter" id="ch6">
+  <h2>Chapter 6: The ProtoOS Platform</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-understand">Understand</span> Describe ProtoOS's architecture and its three functional layers.<br>
+    <span class="bloom-badge bloom-apply">Apply</span> Navigate the ProtoOS ecosystem including CMS, fleet management, and app marketplace.<br>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Assess ProtoOS's enterprise security and compliance capabilities.
+  </div>
+
+  <h3>6.1 Operating System Foundation</h3>
+  <p>ProtoOS is a Linux-based operating system built on <strong>Ubuntu Core 22</strong> with Flutter technologies. It provides the software backbone for all Proto devices with enterprise-grade security, cloud connectivity, and remote management capabilities.</p>
+
+  <h3>6.2 Content Management</h3>
+  <ul>
+    <li><strong>Cloud CMS:</strong> Upload, organize, and schedule holographic content from a centralized dashboard.</li>
+    <li><strong>3D Asset Support:</strong> Native handling of 3D models, animations, and volumetric video.</li>
+    <li><strong>Playlist Management:</strong> Create and schedule content playlists with automated playback.</li>
+    <li><strong>Remote Control:</strong> Full remote command and control of individual devices or entire fleets.</li>
+  </ul>
+
+  <h3>6.3 Fleet Management</h3>
+  <p>For enterprise deployments spanning hundreds or thousands of devices across multiple locations:</p>
+  <ul>
+    <li>Centralized cloud dashboard for monitoring and control.</li>
+    <li>Push content updates to devices globally.</li>
+    <li>Real-time device health monitoring and diagnostics.</li>
+    <li>Role-based access control for multi-team management.</li>
+  </ul>
+
+  <h3>6.4 Developer Ecosystem</h3>
+  <ul>
+    <li><strong>APIs &amp; SDKs:</strong> Build custom holographic applications using Proto's developer tools.</li>
+    <li><strong>App Marketplace:</strong> Discover and deploy pre-built holographic applications, or publish your own (public or private).</li>
+    <li><strong>No-Code Tools:</strong> Business users can create holographic experiences without programming.</li>
+    <li><strong>Contact:</strong> apps@protohologram.com for development inquiries.</li>
+  </ul>
+
+  <h3>6.5 Security &amp; Compliance</h3>
+  <div class="card highlight">
+    <h4>Enterprise-Grade Security</h4>
+    <ul>
+      <li><strong>SOC-2 Type II</strong> compliant</li>
+      <li><strong>HIPAA-aligned</strong> protocols for healthcare deployments</li>
+      <li>Role-based access control</li>
+      <li>Encrypted data pathways</li>
+      <li>Cloud and on-premises deployment options</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Chapter 7 -->
+<section class="chapter" id="ch7">
+  <h2>Chapter 7: Future of Spatial Computing</h2>
+
+  <div class="card bloom">
+    <h4>Learning Objectives</h4>
+    <span class="bloom-badge bloom-evaluate">Evaluate</span> Predict how holographic technology will evolve and impact society.<br>
+    <span class="bloom-badge bloom-create">Create</span> Design a concept for a novel holographic application leveraging emerging AI capabilities.
+  </div>
+
+  <h3>7.1 The Convergence of AI and Holograms</h3>
+  <p>The future of holographic technology lies at the intersection of artificial intelligence and spatial computing. As AI models become more capable and efficient, holographic avatars will become increasingly autonomous, emotionally intelligent, and contextually aware.</p>
+
+  <h3>7.2 Emerging Trends</h3>
+  <ul>
+    <li><strong>Autonomous AI Agents:</strong> Holographic AI employees that can handle complex, multi-step tasks independently &mdash; from customer service to medical triage.</li>
+    <li><strong>Emotional Intelligence:</strong> Avatars that read and respond to human emotions through facial expression analysis, voice tone detection, and body language interpretation.</li>
+    <li><strong>Multi-Modal Interaction:</strong> Combining voice, gesture, touch, and gaze for natural, intuitive communication with holograms.</li>
+    <li><strong>Miniaturization:</strong> From the original Epic (400+ lbs) to the M2 (44 lbs), devices continue to shrink while growing more powerful.</li>
+    <li><strong>Democratized Content Creation:</strong> Text-to-hologram pipelines will make content creation as simple as typing a prompt.</li>
+  </ul>
+
+  <h3>7.3 Societal Impact</h3>
+  <p>Holographic communication technology has the potential to fundamentally reshape how humans connect across distance:</p>
+  <ul>
+    <li><strong>Healthcare Equity:</strong> Specialists accessible to rural and underserved communities worldwide.</li>
+    <li><strong>Education Access:</strong> World-class instructors beamed into any classroom, anywhere.</li>
+    <li><strong>Environmental Impact:</strong> Reduced travel means lower carbon emissions for business communication.</li>
+    <li><strong>Human Connection:</strong> Preserving the emotional depth and physical presence lost in flat video communication.</li>
+  </ul>
+
+  <h3>7.4 Challenges Ahead</h3>
+  <ul>
+    <li><strong>Cost:</strong> Enterprise devices remain expensive ($29K&ndash;$65K), though the M2 brings holographic computing to more accessible price points.</li>
+    <li><strong>Bandwidth:</strong> Live beaming requires reliable 25 Mbps connections, which remain unavailable in some regions.</li>
+    <li><strong>Content Standards:</strong> The black-background requirement constrains creative possibilities and demands specialized production.</li>
+    <li><strong>Ethics:</strong> Digital resurrection of deceased individuals, deepfake concerns, and the authenticity of AI-generated holographic content raise important ethical questions.</li>
+  </ul>
+</section>
+
+<!-- MicroSims -->
+<section class="chapter" id="microsims">
+  <h2>Interactive MicroSims</h2>
+  <p>Explore holographic concepts through interactive simulations built with p5.js.</p>
+
+  <div class="microsim-container">
+    <h4>MicroSim 1: Holographic Projection Simulator</h4>
+    <p class="sim-desc">Visualize how light rays create the holographic illusion inside a Proto device. Move your mouse to change the viewer's perspective. Click to toggle the pure black background effect.</p>
+    <div id="sim1"></div>
+  </div>
+
+  <div class="microsim-container">
+    <h4>MicroSim 2: Global Beaming Network</h4>
+    <p class="sim-desc">Watch live beaming connections form between Proto devices around the world. Each pulse represents a holographic communication session. Click to add a new device node.</p>
+    <div id="sim2"></div>
+  </div>
+</section>
+
+<!-- Knowledge Graph -->
+<section class="chapter" id="knowledge-graph-section">
+  <h2>Knowledge Graph</h2>
+  <p>Explore the concept relationships in Proto Hologram technology. Drag nodes to rearrange. Scroll to zoom.</p>
+  <div id="knowledge-graph"></div>
+</section>
+
+<!-- Bloom's Taxonomy -->
+<section class="chapter" id="blooms">
+  <h2>Bloom's Taxonomy Framework</h2>
+  <p>This textbook structures learning objectives using <strong>Bloom's Taxonomy</strong>, a hierarchical framework for categorizing educational goals by cognitive complexity.</p>
+
+  <div class="card">
+    <h4><span class="bloom-badge bloom-remember">Remember</span> Level 1: Remember</h4>
+    <p>Recall facts and basic concepts. <em>Example: Define volumetric display and list Proto's three device models.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-understand">Understand</span> Level 2: Understand</h4>
+    <p>Explain ideas and concepts. <em>Example: Describe how the black-background technique creates the holographic illusion.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-apply">Apply</span> Level 3: Apply</h4>
+    <p>Use information in new situations. <em>Example: Prepare content for a Proto device following the content creation guidelines.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-analyze">Analyze</span> Level 4: Analyze</h4>
+    <p>Draw connections among ideas. <em>Example: Compare Proto's approach to holographic display with VR/AR headset-based alternatives.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-evaluate">Evaluate</span> Level 5: Evaluate</h4>
+    <p>Justify a decision or course of action. <em>Example: Assess the cost-benefit trade-offs of deploying holographic telemedicine in rural clinics.</em></p>
+  </div>
+  <div class="card">
+    <h4><span class="bloom-badge bloom-create">Create</span> Level 6: Create</h4>
+    <p>Produce new or original work. <em>Example: Design a holographic deployment strategy for a university campus.</em></p>
+  </div>
+</section>
+
+<!-- Glossary -->
+<section class="chapter" id="glossary-section">
+  <h2>Glossary</h2>
+  <input type="text" id="glossary-search" placeholder="Search glossary terms..." oninput="filterGlossary()">
+  <div class="glossary-grid" id="glossary-grid"></div>
+</section>
+
+</main>
+
+<script>
+// ===================== GLOSSARY DATA =====================
+const glossaryTerms = [
+  { term: "AI Avatar", def: "A photorealistic, autonomous digital human powered by artificial intelligence that can interact with people through speech, gesture, and expression on a Proto holographic device." },
+  { term: "Beaming", def: "Proto's term for live holographic telepresence, where a person is captured by a 4K camera and projected in real-time onto a Proto device at a remote location." },
+  { term: "Bloom's Taxonomy", def: "A hierarchical framework for classifying educational learning objectives into six levels of cognitive complexity: Remember, Understand, Apply, Analyze, Evaluate, and Create." },
+  { term: "CMS (Content Management System)", def: "Proto's cloud-based platform for uploading, organizing, scheduling, and deploying holographic content across devices." },
+  { term: "Computer Vision", def: "AI technology that enables Proto devices to detect, track, and analyze people, objects, and environmental features in their surroundings." },
+  { term: "Dynamic Perception", def: "The ability of Proto AI avatars to analyze spatial context, emotional tone, and audience behavior and modify their voice, expression, and posture in real-time." },
+  { term: "Fleet Management", def: "Enterprise capability to monitor, control, and update hundreds or thousands of Proto devices from a centralized cloud dashboard." },
+  { term: "Hologram", def: "In Proto's context, a three-dimensional visual representation of a person or object displayed within a Proto device enclosure, viewable without special eyewear." },
+  { term: "HIPAA-Aligned", def: "Conformance with the Health Insurance Portability and Accountability Act standards for protecting sensitive patient health information in healthcare deployments." },
+  { term: "Knowledge Graph", def: "A structured representation of concepts and their interrelationships within a domain, used in intelligent textbooks to map learning pathways." },
+  { term: "Live Beaming", def: "Real-time holographic telepresence requiring a 4K camera and 25 Mbps internet connection for both upload and download." },
+  { term: "MicroSim", def: "A small interactive simulation embedded in an intelligent textbook to help learners explore concepts through hands-on experimentation." },
+  { term: "NLP (Natural Language Processing)", def: "AI technology that enables Proto's conversational avatars to understand, interpret, and respond to human speech in real-time." },
+  { term: "Pepper's Ghost", def: "A 19th-century illusion technique using angled glass to reflect images, creating the appearance of ghostly figures on stage. A precursor to modern holographic display technology." },
+  { term: "Proto Epic", def: "Proto's original full-size holographic display device, taller than the average NBA player, with 32GB RAM, 1TB SSD, and an AI-enabled smart camera." },
+  { term: "Proto Luma", def: "Proto's flagship 86-inch life-size enterprise holographic display with 4K camera, 10x zoom, 6-microphone array, and stereo speakers." },
+  { term: "Proto M2", def: "Proto's next-generation 21.5-inch desktop holographic device unveiled at CES 2025, featuring a 12-core processor, 32GB LPDDR5 RAM, and 11TB SSD storage." },
+  { term: "ProtoGPT", def: "Proto's proprietary conversational intelligence engine that powers autonomous AI hologram agents with contextual understanding and natural dialogue." },
+  { term: "ProtoOS", def: "Proto's Linux-based operating system built on Ubuntu Core 22 with Flutter technologies, providing the software backbone for all Proto devices." },
+  { term: "Pure Black Background", def: "The requirement that holographic content be rendered against absolute black (#000000) so that black pixels remain invisible, making subjects appear to float in space." },
+  { term: "SOC-2 Type II", def: "A security compliance standard that certifies an organization's controls for data security, availability, processing integrity, confidentiality, and privacy." },
+  { term: "Spatial Computing", def: "Technology that enables digital content to understand and interact with the physical space around it, incorporating depth sensing, gesture recognition, and environmental awareness." },
+  { term: "Text-to-Hologram", def: "An AWS-powered pipeline that generates animated holographic content from text descriptions in under 2 minutes, eliminating the need for 3D modeling expertise." },
+  { term: "Volumetric Display", def: "A display technology that creates visual representations of objects in three dimensions, allowing viewing from multiple angles without special eyewear." },
+  { term: "Wearable-Free", def: "Proto's core differentiator: holographic effects are visible to the naked eye without requiring VR headsets, AR glasses, or any other wearable devices." }
+];
+
+function renderGlossary(terms) {
+  const grid = document.getElementById('glossary-grid');
+  grid.innerHTML = terms.map(t =>
+    `<div class="glossary-item"><dl><dt>${t.term}</dt><dd>${t.def}</dd></dl></div>`
+  ).join('');
+}
+
+function filterGlossary() {
+  const q = document.getElementById('glossary-search').value.toLowerCase();
+  const filtered = glossaryTerms.filter(t =>
+    t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q)
+  );
+  renderGlossary(filtered);
+}
+
+renderGlossary(glossaryTerms);
+
+// ===================== KNOWLEDGE GRAPH =====================
+const kgNodes = new vis.DataSet([
+  { id: 1, label: "Proto\nHologram", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628", size: 16, bold: true }, size: 35 },
+  { id: 2, label: "Display\nTechnology", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
+  { id: 3, label: "Spatial\nComputing", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
+  { id: 4, label: "AI\nIntegration", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
+  { id: 5, label: "Content\nCreation", color: { background: "#7b2fff", border: "#5a1fcc" }, font: { color: "#fff" }, size: 25 },
+  { id: 6, label: "ProtoOS", color: { background: "#ff2d95", border: "#cc2477" }, font: { color: "#fff" }, size: 22 },
+  { id: 7, label: "Proto Luma", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 8, label: "Proto M2", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 9, label: "Proto Epic", color: { background: "#00d4ff", border: "#0099bb" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 10, label: "Live\nBeaming", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 11, label: "Text-to-\nHologram", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 12, label: "AI Avatars", color: { background: "#ffc107", border: "#cc9a00" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 13, label: "Education", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 14, label: "Healthcare", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 15, label: "Retail", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 16, label: "Enterprise", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 17, label: "Entertainment", color: { background: "#66bb6a", border: "#4caf50" }, font: { color: "#0a1628" }, size: 18 },
+  { id: 18, label: "ProtoGPT", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
+  { id: 19, label: "Computer\nVision", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
+  { id: 20, label: "NLP", color: { background: "#ff7043", border: "#e64a19" }, font: { color: "#fff" }, size: 16 },
+  { id: 21, label: "Fleet\nMgmt", color: { background: "#ff2d95", border: "#cc2477" }, font: { color: "#fff" }, size: 16 },
+  { id: 22, label: "Cloud\nCMS", color: { background: "#ff2d95", border: "#cc2477" }, font: { color: "#fff" }, size: 16 },
+  { id: 23, label: "Black\nBackground", color: { background: "#ab47bc", border: "#8e24aa" }, font: { color: "#fff" }, size: 16 },
+  { id: 24, label: "Pepper's\nGhost", color: { background: "#ab47bc", border: "#8e24aa" }, font: { color: "#fff" }, size: 16 },
+]);
+
+const kgEdges = new vis.DataSet([
+  { from: 1, to: 2 }, { from: 1, to: 3 }, { from: 1, to: 4 }, { from: 1, to: 5 }, { from: 1, to: 6 },
+  { from: 1, to: 7 }, { from: 1, to: 8 }, { from: 1, to: 9 },
+  { from: 5, to: 10 }, { from: 5, to: 11 }, { from: 5, to: 12 },
+  { from: 4, to: 18 }, { from: 4, to: 19 }, { from: 4, to: 20 }, { from: 4, to: 12 },
+  { from: 1, to: 13 }, { from: 1, to: 14 }, { from: 1, to: 15 }, { from: 1, to: 16 }, { from: 1, to: 17 },
+  { from: 6, to: 21 }, { from: 6, to: 22 },
+  { from: 2, to: 23 }, { from: 2, to: 24 },
+  { from: 13, to: 10 }, { from: 13, to: 12 },
+  { from: 14, to: 10 }, { from: 14, to: 12 },
+  { from: 15, to: 12 },
+  { from: 3, to: 19 },
+]);
+
+const kgContainer = document.getElementById('knowledge-graph');
+const kgData = { nodes: kgNodes, edges: kgEdges };
+const kgOptions = {
+  nodes: { shape: 'dot', borderWidth: 2 },
+  edges: { color: { color: '#1e3354', highlight: '#00d4ff' }, width: 1.5, smooth: { type: 'continuous' } },
+  physics: { solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.008, springLength: 140 } },
+  interaction: { hover: true, zoomView: true, dragView: true }
+};
+new vis.Network(kgContainer, kgData, kgOptions);
+
+// ===================== MICROSIM 1: Holographic Projection =====================
+new p5(function(p) {
+  let W = 750, H = 400;
+  let showBlack = true;
+  let particles = [];
+
+  p.setup = function() {
+    let canvas = p.createCanvas(W, H);
+    canvas.parent('sim1');
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: p.random(W * 0.25, W * 0.75),
+        y: p.random(H * 0.2, H * 0.8),
+        vx: p.random(-0.5, 0.5),
+        vy: p.random(-0.5, 0.5),
+        size: p.random(2, 6),
+        hue: p.random(170, 210)
+      });
+    }
+  };
+
+  p.draw = function() {
+    // Device enclosure
+    p.background(12, 26, 46);
+
+    // Proto device box
+    let bx = W * 0.15, by = H * 0.08, bw = W * 0.7, bh = H * 0.84;
+    p.fill(showBlack ? 0 : 30);
+    p.stroke(0, 212, 255, 80);
+    p.strokeWeight(2);
+    p.rect(bx, by, bw, bh, 8);
+
+    // Label
+    p.noStroke();
+    p.fill(0, 212, 255);
+    p.textSize(11);
+    p.textAlign(p.CENTER);
+    p.text("PROTO DEVICE ENCLOSURE", W / 2, by + 18);
+
+    // Holographic figure (stylized person silhouette)
+    let figX = W / 2;
+    let figY = H / 2;
+    let mx = p.map(p.mouseX, 0, W, -20, 20);
+    let my = p.map(p.mouseY, 0, H, -10, 10);
+
+    // Glow effect
+    for (let g = 3; g > 0; g--) {
+      p.fill(0, 212, 255, 8);
+      p.noStroke();
+      p.ellipse(figX + mx, figY + my - 30, 80 + g * 30, 160 + g * 30);
+    }
+
+    // Figure
+    p.fill(0, 212, 255, 180);
+    p.noStroke();
+    // Head
+    p.ellipse(figX + mx, figY - 80 + my, 40, 45);
+    // Body
+    p.beginShape();
+    p.vertex(figX - 25 + mx, figY - 55 + my);
+    p.vertex(figX + 25 + mx, figY - 55 + my);
+    p.vertex(figX + 35 + mx, figY + 40 + my);
+    p.vertex(figX + 15 + mx, figY + 40 + my);
+    p.vertex(figX + 5 + mx, figY + my);
+    p.vertex(figX - 5 + mx, figY + my);
+    p.vertex(figX - 15 + mx, figY + 40 + my);
+    p.vertex(figX - 35 + mx, figY + 40 + my);
+    p.endShape(p.CLOSE);
+
+    // Scan lines
+    p.stroke(0, 212, 255, 25);
+    p.strokeWeight(0.5);
+    for (let sl = by + 25; sl < by + bh; sl += 4) {
+      p.line(bx + 5, sl, bx + bw - 5, sl);
+    }
+
+    // Floating particles
+    p.noStroke();
+    for (let pt of particles) {
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      if (pt.x < bx + 10 || pt.x > bx + bw - 10) pt.vx *= -1;
+      if (pt.y < by + 10 || pt.y > by + bh - 10) pt.vy *= -1;
+      let alpha = 100 + 80 * p.sin(p.frameCount * 0.03 + pt.hue);
+      p.fill(0, pt.hue, 255, alpha);
+      p.ellipse(pt.x, pt.y, pt.size);
+    }
+
+    // Light rays from edges
+    p.stroke(0, 212, 255, 15);
+    p.strokeWeight(1);
+    for (let r = 0; r < 8; r++) {
+      let ry = by + 30 + r * (bh - 60) / 7;
+      p.line(bx, ry, figX + mx, figY - 30 + my);
+      p.line(bx + bw, ry, figX + mx, figY - 30 + my);
+    }
+
+    // Instructions
+    p.noStroke();
+    p.fill(136, 153, 170);
+    p.textSize(11);
+    p.text("Move mouse to shift perspective | Click to toggle background", W / 2, H - 10);
+
+    // Background mode label
+    p.fill(showBlack ? 102 : 200, showBlack ? 255 : 100, showBlack ? 102 : 100);
+    p.textSize(10);
+    p.text(showBlack ? "Pure Black (#000000) — Holographic Mode" : "Gray Background — Illusion Broken", W / 2, by + bh - 8);
+  };
+
+  p.mousePressed = function() {
+    if (p.mouseX > 0 && p.mouseX < W && p.mouseY > 0 && p.mouseY < H) {
+      showBlack = !showBlack;
+    }
+  };
+}, 'sim1');
+
+// ===================== MICROSIM 2: Global Beaming Network =====================
+new p5(function(p) {
+  let W = 750, H = 400;
+  let nodes = [];
+  let beams = [];
+
+  function addNode(x, y, label) {
+    nodes.push({ x, y, label, pulse: p.random(100) });
+  }
+
+  p.setup = function() {
+    let canvas = p.createCanvas(W, H);
+    canvas.parent('sim2');
+    // World cities with Proto deployments
+    addNode(160, 160, "New York");
+    addNode(120, 200, "Los Angeles");
+    addNode(190, 230, "Dallas");
+    addNode(345, 150, "London");
+    addNode(380, 170, "Paris");
+    addNode(490, 210, "Dubai");
+    addNode(570, 200, "Mumbai");
+    addNode(640, 170, "Tokyo");
+    addNode(620, 240, "Singapore");
+    addNode(380, 280, "Nairobi");
+    addNode(280, 310, "São Paulo");
+    addNode(680, 300, "Sydney");
+    addNode(150, 260, "Mexico City");
+    addNode(420, 140, "Berlin");
+  };
+
+  p.draw = function() {
+    p.background(12, 26, 46);
+
+    // Draw simplified world map outline (dots)
+    p.noStroke();
+    p.fill(30, 50, 80, 40);
+    // Continents as rough shapes
+    p.ellipse(150, 190, 120, 100); // North America
+    p.ellipse(270, 300, 80, 80);   // South America
+    p.ellipse(370, 180, 100, 100); // Europe
+    p.ellipse(390, 270, 70, 70);   // Africa
+    p.ellipse(530, 200, 120, 100); // Asia
+    p.ellipse(670, 290, 70, 50);   // Australia
+
+    // Create random beams periodically
+    if (p.frameCount % 90 === 0 && nodes.length > 1) {
+      let a = p.floor(p.random(nodes.length));
+      let b = p.floor(p.random(nodes.length));
+      while (b === a) b = p.floor(p.random(nodes.length));
+      beams.push({ from: a, to: b, progress: 0, speed: p.random(0.008, 0.02) });
+    }
+
+    // Draw and update beams
+    for (let i = beams.length - 1; i >= 0; i--) {
+      let beam = beams[i];
+      let n1 = nodes[beam.from];
+      let n2 = nodes[beam.to];
+      beam.progress += beam.speed;
+
+      if (beam.progress > 1.5) {
+        beams.splice(i, 1);
+        continue;
+      }
+
+      let t = p.min(beam.progress, 1);
+
+      // Beam line
+      p.stroke(0, 212, 255, 60);
+      p.strokeWeight(1);
+      let cx = (n1.x + n2.x) / 2;
+      let cy = p.min(n1.y, n2.y) - 40;
+      // Draw arc
+      p.noFill();
+      p.beginShape();
+      for (let s = 0; s <= t; s += 0.02) {
+        let px = p.lerp(p.lerp(n1.x, cx, s), p.lerp(cx, n2.x, s), s);
+        let py = p.lerp(p.lerp(n1.y, cy, s), p.lerp(cy, n2.y, s), s);
+        p.vertex(px, py);
+      }
+      p.endShape();
+
+      // Beam head (traveling pulse)
+      let hx = p.lerp(p.lerp(n1.x, cx, t), p.lerp(cx, n2.x, t), t);
+      let hy = p.lerp(p.lerp(n1.y, cy, t), p.lerp(cy, n2.y, t), t);
+      p.noStroke();
+      p.fill(0, 212, 255, 200);
+      p.ellipse(hx, hy, 6, 6);
+      p.fill(0, 212, 255, 50);
+      p.ellipse(hx, hy, 14, 14);
+    }
+
+    // Draw nodes
+    for (let nd of nodes) {
+      nd.pulse += 0.03;
+      let pulseSize = 6 + 3 * p.sin(nd.pulse);
+
+      // Glow
+      p.noStroke();
+      p.fill(0, 212, 255, 30);
+      p.ellipse(nd.x, nd.y, pulseSize * 4);
+
+      // Dot
+      p.fill(0, 212, 255);
+      p.ellipse(nd.x, nd.y, pulseSize);
+
+      // Label
+      p.fill(200, 220, 240);
+      p.textSize(9);
+      p.textAlign(p.CENTER);
+      p.text(nd.label, nd.x, nd.y + 18);
+    }
+
+    // Title
+    p.fill(0, 212, 255);
+    p.textSize(13);
+    p.textAlign(p.CENTER);
+    p.text("Global Proto Beaming Network", W / 2, 25);
+
+    // Stats
+    p.fill(136, 153, 170);
+    p.textSize(10);
+    p.text(`${nodes.length} Devices  |  ${beams.length} Active Beams  |  Click to add a node`, W / 2, H - 12);
+  };
+
+  p.mousePressed = function() {
+    if (p.mouseX > 10 && p.mouseX < W - 10 && p.mouseY > 30 && p.mouseY < H - 25) {
+      addNode(p.mouseX, p.mouseY, "Device " + (nodes.length + 1));
+    }
+  };
+}, 'sim2');
+
+// ===================== SIDEBAR ACTIVE STATE =====================
+const sections = document.querySelectorAll('.chapter');
+const navLinks = document.querySelectorAll('#sidebar nav a:not(.nav-section)');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.offsetTop - 100;
+    if (window.pageYOffset >= top) {
+      current = section.getAttribute('id');
+    }
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
